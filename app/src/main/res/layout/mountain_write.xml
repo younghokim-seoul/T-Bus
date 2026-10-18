@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:id="@+id/rootView"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/wbCloseBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="3dp"
+            android:src="@drawable/xbutton_black"/>
+
+        <TextView
+            android:id="@+id/wbTitleBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="20"
+            android:clickable="true"
+            android:gravity="center"
+            android:text="산행/여행 정보"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/Black"/>
+
+        <TextView
+            android:id="@+id/wbDoneBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="올리기"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/Green"
+            />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/Gray"
+        />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:focusableInTouchMode="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusableInTouchMode="true"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/mwTitleEt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_margin="5dp"
+                android:hint="제목"
+                android:textColor="@color/Black">
+
+                <requestFocus/>
+            </EditText>
+
+            <EditText
+                android:id="@+id/mwStartlocaleEt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+
+                android:hint="출발지역"
+                android:textColor="@color/Black">
+
+            </EditText>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:text="출발일자"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/Black"/>
+
+                <TextView
+                    android:id="@+id/mwStartDayBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="35dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/border"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:hint="출발일 선택"
+                    android:layout_margin="5dp"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/Black">
+
+                </TextView>
+
+                <TextView
+                    android:id="@+id/mwStartTimeBt"
+                    android:layout_width="0dp"
+                    android:layout_height="35dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/border"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:hint="시간 선택"
+                    android:layout_margin="5dp"
+
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/Black">
+
+                </TextView>
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/mwTermEt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_margin="5dp"
+                android:hint="여행기간"
+                android:textColor="@color/Black">
+
+            </EditText>
+
+            <EditText
+                android:id="@+id/mwTaxEt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:hint="여행비용"
+
+                android:textColor="@color/Black">
+
+            </EditText>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

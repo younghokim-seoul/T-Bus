@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:background="@color/transparent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/popup_title"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/call_sms"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/White"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:id="@+id/callsmsGuidanceTxt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/call_sms_guidance"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/Black"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/listLine"
+            android:orientation="vertical">
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/callsmsContentsTxt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text=""
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/Black"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/listLine"
+            android:orientation="vertical">
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="23dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@color/White"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/cancelBtn"
+            android:layout_width="85dp"
+            android:layout_height="45dp"
+            android:background="@drawable/xml_btn_cancel"
+            android:text="@string/btn_cancel"
+            android:textAppearance="?android:attr/textAppearanceLargeInverse"
+            android:textColor="@color/White"/>
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/okBtn"
+            android:layout_width="85dp"
+            android:layout_height="45dp"
+            android:background="@drawable/xml_btn_ok"
+            android:text="@string/btn_ok"
+            android:textAppearance="?android:attr/textAppearanceLargeInverse"
+            android:textColor="@color/White"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="15dp"
+        android:background="@drawable/popup_tail"
+        android:orientation="vertical">
+
+    </LinearLayout>
+
+</LinearLayout>

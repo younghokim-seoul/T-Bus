@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/DarkSeaGreen"
+        android:gravity="center"
+        android:orientation="horizontal"
+        >
+
+
+        <ImageView
+            android:id="@+id/bvBackBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:src="@drawable/xbutton_black"
+            />
+
+        <TextView
+            android:id="@+id/bvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:text="TextView"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/White"/>
+
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/cvScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/bvScrollLo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+
+            <HorizontalScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <LinearLayout
+                    android:id="@+id/cvPhotosLo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    >
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/LightGray"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    >
+
+                    <ImageView
+                        android:id="@+id/bvWriterImg"
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:layout_margin="5dp"
+                        android:src="@drawable/person"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="vertical"
+                        android:paddingLeft="10dp">
+
+                        <TextView
+                            android:id="@+id/bvWriterNameTxt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:text="TextView"
+                            android:textColor="@color/Black"
+
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:id="@+id/bvWriterDateTxt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+
+                            android:gravity="center_vertical"
+                            android:text="TextView"
+                            android:textColor="@color/Gray"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="대표상품:"
+                        android:textColor="@color/DarkSlateGray"
+                        android:visibility="gone"/>
+
+                    <TextView
+                        android:id="@+id/cvProductTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/Black"
+                        android:textSize="17sp"
+                        android:textStyle="bold">
+
+                    </TextView>
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="주소:"
+                        android:textColor="@color/DarkSlateGray"
+                        android:visibility="gone"/>
+
+                    <TextView
+                        android:id="@+id/cvAddrTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/Black"
+                        android:textSize="16sp">
+
+                    </TextView>
+                </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/prg_border_black"
+                    android:foregroundGravity="center"
+                    android:padding="3dp">
+
+                    <fragment
+                        android:id="@+id/cvMapView"
+                        class="com.google.android.gms.maps.MapFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        />
+                </FrameLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="담당자:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvManagerNameTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="담당자 연락처:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvManagerTelTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="업체 연락처:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvContactTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="이용 정보:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvUsageTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="메뉴 정보:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvMenuTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="최대수용인원:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvCapacityTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="영업시간:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvTimeTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="휴무정보:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvClosedTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="버스주차정보:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvParkingTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="예약가능:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvBookingTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="상세내용:"
+                        android:textColor="@color/DarkSlateGray"/>
+
+                    <EditText
+                        android:id="@+id/cvDetailTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:enabled="false"
+                        android:textColor="@color/Black">
+
+                    </EditText>
+                </LinearLayout>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/Gray"/>
+
+                <LinearLayout
+                    android:id="@+id/bvReplyLo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/CornSilk"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/Gray"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/bvReplyEt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/White"
+            android:hint="댓글을 적어주세요"
+            android:paddingLeft="10dp"/>
+
+        <TextView
+            android:id="@+id/bvReplySendBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingEnd="10dp"
+            android:paddingStart="10dp"
+            android:text="보내기"
+            android:textColor="@color/DarkRed"
+            />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/Gray"
+        />
+
+    <LinearLayout
+        android:id="@+id/cdCallBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/prg_border_green_dark"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="5dp">
+
+        <ImageView
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:src="@drawable/icon_phone"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:gravity="center"
+            android:text="전화 바로 걸기"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/White"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:padding="15dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/popup_title"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/join"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/White"
+        android:padding="10dp">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="
+1. 등록 신청을 하면 담당자가 확인 후 등록 진행해 드립니다.\n
+2. 아래 양식 내용을 모두 입력 하여 주셔야 등록 신청이 가능합니다.\n
+- 입력한 내용이 다를시 T버스 이용에 제한이 있을 수 있습니다.\n
+- 개인 정보는 T버스 회원분들에게 공유됩니다.\n
+- 개인 정보 수집에 동의합니다.\n
+3. 위 내용을 읽고 동의 한다면 신청서를 작성 하시기 바랍니다.\n"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
+                    android:textColor="@color/Black"
+                    />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="기타 관련 문의는 T버스 고객센터"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:textColor="@color/Black"
+                        />
+
+                    <TextView
+                        android:id="@+id/joinTelBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:background="@drawable/prg_box"
+                        android:padding="3dp"
+                        android:text="010-9848-4748"
+                        android:textColor="@color/Blue"
+                        android:textStyle="bold"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="문의 하여 주세요"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:textColor="@color/Black"
+
+                        />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="250dp"
+                    android:layout_height="35dp"
+                    android:gravity="bottom|left"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/phonenumber"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textColor="@android:color/black"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"/>
+
+                <EditText
+                    android:id="@+id/jcCompanyNameEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="업체명"
+                    android:lines="1"
+                    android:textColor="@android:color/black">
+
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcProductEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="대표 상품"
+                    android:textColor="@android:color/black">
+
+                </EditText>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="업종"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textColor="@color/Black"/>
+
+                    <Spinner
+                        android:id="@+id/jcSectorsSp"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="@color/Black">
+
+                    </Spinner>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="지역"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textColor="@color/Black"/>
+
+                    <Spinner
+                        android:id="@+id/jcLocale1Sp"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="@color/Black">
+
+                    </Spinner>
+
+                    <Spinner
+                        android:id="@+id/jcLocale2Sp"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="@color/Black">
+
+                    </Spinner>
+                </LinearLayout>
+
+                <EditText
+                    android:id="@+id/jcAddrEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="주소"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="정확한 주소를 입력하세요(지도 연동)"
+                    android:textColor="@color/Black"/>
+
+                <Button
+                    android:id="@+id/jcMapSearchBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingLeft="15dp"
+                    android:paddingRight="15dp"
+                    android:text="주소로 지도 찾기"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/Black"/>
+
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:foregroundGravity="center"
+                    android:background="@drawable/prg_border_black"
+                    android:padding="3dp">
+
+                    <fragment
+                        android:id="@+id/jcMapView"
+                        class="com.google.android.gms.maps.MapFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        />
+                </FrameLayout>
+
+                <EditText
+                    android:id="@+id/jcManagerNameEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="담당자 성명"
+                    android:lines="1"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcManagerTelEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="담당자 연락처"
+                    android:lines="1"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcContactEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="업체 연락처"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcUsageEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="이용 정보"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcMenuEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="메뉴 정보"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcCapacityEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="최대 수용 인원"
+                    android:inputType="number"
+                    android:lines="1"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcTimeEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="영업시간"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcClosedEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="휴무 정보"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <EditText
+                    android:id="@+id/jcParkingEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="버스 주차 정보"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <CheckBox
+                    android:id="@+id/jcBookingCk"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="예약 가능"
+                    android:textColor="@android:color/black">
+                </CheckBox>
+
+                <EditText
+                    android:id="@+id/jcDetailEd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="상세 내용"
+                    android:textColor="@android:color/black">
+                </EditText>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/joinProfileImg"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:background="@drawable/person"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical|right"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <Button
+                            android:id="@+id/joinProfileBt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:background="@drawable/xml_btn_picture_edit"
+                            android:gravity="right|center_vertical"
+                            android:paddingRight="20dp"
+                            android:text="@string/pref_photoSetting"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="@color/Black"/>
+
+                        <Button
+                            android:id="@+id/joinPhotoBt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/xml_btn_default"
+                            android:gravity="right|center_vertical"
+                            android:paddingLeft="5dp"
+                            android:paddingRight="5dp"
+                            android:text="사진추가(필수)"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="@color/White"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/joinPhotoLo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"></LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="23dp"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center">
+
+                    <CheckBox
+                        android:id="@+id/joinAgreementCb"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:checked="false"
+                        android:enabled="true"
+                        android:textColor="@android:color/black"/>
+
+                    <TextView
+                        android:id="@+id/joinAgreementBt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/personalAgreement"
+                        android:textSize="18sp"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="23dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@android:color/white"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/joinCancelBt"
+                    android:layout_width="85dp"
+                    android:layout_height="45dp"
+                    android:background="@drawable/xml_btn_cancel"
+                    android:text="@string/btn_cancel"
+                    android:textAppearance="?android:attr/textAppearanceLargeInverse"
+                    android:textColor="@android:color/white"/>
+
+                <View
+                    android:layout_width="12dp"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/joinRegisterBt"
+                    android:layout_width="85dp"
+                    android:layout_height="45dp"
+                    android:background="@drawable/xml_btn_ok"
+                    android:text="@string/btn_ok"
+                    android:textAppearance="?android:attr/textAppearanceLargeInverse"
+                    android:textColor="@android:color/white"/>
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="15dp"
+                android:background="@drawable/popup_tail"
+                android:orientation="vertical">
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

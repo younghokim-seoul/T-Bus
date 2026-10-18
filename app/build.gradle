@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.windnsoft.tbus'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.windnsoft.tbus"
+        minSdk 21
+        targetSdk 34
+        versionCode 4
+        versionName '1.04'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            resValue "string", "google_maps_api_key", "AIzaSyBABkN_vSOv9I8je8BhsER2a-v-ecXojG4"
+        }
+
+        release {
+            resValue "string", "google_maps_api_key", "AIzaSyBABkN_vSOv9I8je8BhsER2a-v-ecXojG4"
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.google.android.gms:play-services-maps:17.0.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

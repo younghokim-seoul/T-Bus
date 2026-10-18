@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">관광정보 (T버스)</string>
+    <string name="noti_text">관광정보 (T버스) 실행중</string>
+
+    <string name="btn_cancel">취소</string>
+    <string name="btn_ok">확인</string>
+    <string name="btn_show">보기</string>
+    <string name="btn_on">켜짐</string>
+    <string name="btn_off">꺼짐</string>
+    <string name="btn_modify">수정</string>
+
+    <string name="tbus">T버스</string>
+    <string name="exit">종료</string>
+    <string name="channel">채널찾기: </string>
+    <string name="myinfo">본인정보</string>
+    <string name="callerInfo">발신자정보</string>
+    <string name="UserCountInChannel">접속자:</string>
+
+    <string name="earphonestate">이어폰</string>
+
+    <string name="join">회원가입</string>
+    <string name="phonenumber">전화번호</string>
+    <string name="password">비밀번호 (6자 이상)</string>
+    <string name="passwordverify">비밀번호 (확인)</string>
+    <string name="nickname">이름(소속)</string>
+    <string name="name">이름</string>
+    <string name="login">로그인</string>
+    <string name="autologin">자동으로 로그인</string>
+    <string name="confirm">확인</string>
+    <string name="phonenumberExist">이미 등록된 전화번호입니다.\n로그인 해주세요.</string>
+    <string name="personalAgreement">개인정보 보호방침</string>
+
+    <string name="pref_change_nickname">기본</string>
+    <string name="pref_change_channelNickname">채널별</string>
+
+    <string name="pref_call_beep">무전 시작/종료 알림</string>
+    <string name="pref_tts">TTS (음성 출력) 설정</string>
+    <string name="pref_mySpeed">내 속도 표시</string>
+    <string name="pref_memberchannel">가입된 채널만 표시</string>
+    <string name="pref_version">버전 정보</string>
+    <string name="pref_notice">공지사항</string>
+    <string name="pref_question">1:1 문의</string>
+    <string name="pref_memberPhoto">입장자/퇴장자 사진 표시</string>
+    <string name="pref_location">위치정보 표시</string>
+    <string name="pref_personalAgreement">이용약관 및 개인정보 처리방침</string>
+    <string name="pref_language">언어 설정</string>
+
+    <string name="ChannelChange">채널 찾기</string>
+    <string name="CreateChannel">채널 생성</string>
+    <string name="ChannelNumber">채널번호 (100이상)</string>
+    <string name="ChannelTitle">채널명</string>
+    <string name="ChannelPassword">비밀번호 (선택사항)</string>
+    <string name="ChannelPassword2">비밀번호 확인</string>
+    <string name="InputAnother">다른 번호를 입력해주세요</string>
+
+
+    <string name="network_failure">서버 연결이 원활하지 않습니다.</string>
+    <string name="network_error">네트워크 연결이 원활하지 않습니다.</string>
+    <string name="restart_cause_network">사용자의 통신사 불능 지역 또는 폰 속도가 느려서 중지되었으니 재접속 바랍니다.</string>
+    <string name="network_cannot_access">네트워크에 접속할 수 없습니다.</string>
+
+    <string name="publisher_offhook">발신자 전화.</string>
+
+    <string name="emergency">긴급.</string>
+    <string name="call_sms">호출</string>
+    <string name="call_sms_guidance">확인을 누르면 호출 문자를 보냅니다.\n사용하는 요금제에 따라 문자 요금이 부과될 수 있습니다.</string>
+
+    <string name="indi_conn_btn">개별무전</string>
+    <string name="indi_dialog_title">멤버 리스트</string>
+    <string name="indi_text">개별</string>
+    <string name="btn_Preferences">환경설정</string>
+    <string name="btn_CreateChannel">채널생성</string>
+    <string name="btn_Indivisual">개별</string>
+    <string name="btn_CallSms">호출</string>
+    <string name="btn_Quit">종료</string>
+    <string name="btn_Emergency">긴급</string>
+    <string name="btn_close">닫기</string>
+    <string name="erTitle">긴급 발신</string>
+    <string name="er_text">* 긴급 상황시 사용 *\n확인을 누르면 \n접속된 모든 회원은 \n긴급 사용 시간동안 \n무전을 할 수 없습니다.</string>
+    <string name="cc3daysTxt">무료채널 3일간 접속자 없으면\n삭제됩니다</string>
+    <string name="uic_title">채널멤버</string>
+    <string name="pref_title">내 정보 설정</string>
+    <string name="pref_photoSetting">사진설정</string>
+    <string name="chpw_title">비공개 방</string>
+    <string name="chpw_password">비밀 번호를 입력하세요.</string>
+    <string name="btn_agree">동의</string>
+    <string name="ppTitle">개인정보 동의서</string>
+    <string name="txtNeededUpdate">최신 버전으로 업데이트해주세요.</string>
+    <string name="txtUpdate">업데이트</string>
+    <string name="pref_ptt_button">PTT 버튼 타입  토글</string>
+    <string name="stop_cause_mute">음성 인식이 안되어 중지되었습니다</string>
+    <string name="streamChannel">testStream2</string>
+</resources>

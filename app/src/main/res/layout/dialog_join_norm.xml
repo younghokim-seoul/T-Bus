@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="300dp"
+              android:layout_height="wrap_content"
+              android:padding="15dp"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/popup_title"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/join"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="250dp"
+            android:layout_height="35dp"
+            android:gravity="bottom|left"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/phonenumber"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@android:color/black"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="10dp"/>
+
+        <EditText
+            android:id="@+id/joinPhonenumberEt"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:hint="@string/phonenumber"
+            android:inputType="number"
+            android:singleLine="true"
+            android:textColor="@android:color/black">
+
+        </EditText>
+
+
+        <EditText
+            android:id="@+id/joinNicknameEt"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/name"
+            android:maxLength="32"
+            android:singleLine="true"
+            android:textColor="@android:color/black">
+
+        </EditText>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="23dp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            >
+
+            <CheckBox
+                android:id="@+id/joinAgreementCb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:checked="false"
+                android:enabled="true"
+                android:textColor="@android:color/black"/>
+
+            <TextView
+                android:id="@+id/joinAgreementBt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/personalAgreement"
+                android:textSize="18sp"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="23dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@android:color/white"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/joinCancelBt"
+            android:layout_width="85dp"
+            android:layout_height="45dp"
+            android:background="@drawable/xml_btn_cancel"
+            android:text="@string/btn_cancel"
+            android:textAppearance="?android:attr/textAppearanceLargeInverse"
+            android:textColor="@android:color/white"/>
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/joinRegisterBt"
+            android:layout_width="85dp"
+            android:layout_height="45dp"
+            android:background="@drawable/xml_btn_ok"
+            android:text="@string/btn_ok"
+            android:textAppearance="?android:attr/textAppearanceLargeInverse"
+            android:textColor="@android:color/white"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="15dp"
+        android:background="@drawable/popup_tail"
+        android:orientation="vertical">
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/DarkSeaGreen"
+        android:gravity="center"
+        android:orientation="horizontal"
+        >
+
+        <ImageView
+            android:id="@+id/bvBackBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:src="@drawable/xbutton_black"
+            />
+
+        <TextView
+            android:id="@+id/bvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:text="버스 견적"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/White"/>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/Gray"
+        />
+
+    <ScrollView
+        android:id="@+id/bvReplyScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:focusableInTouchMode="true">
+
+        <LinearLayout
+            android:id="@+id/bvScrollLo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                >
+
+                <ImageView
+                    android:id="@+id/bvWriterImg"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_margin="5dp"
+                    android:src="@drawable/person"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical"
+                    android:paddingLeft="10dp">
+
+                    <TextView
+                        android:id="@+id/bvWriterNameTxt"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:text="TextView"
+                        android:textColor="@color/Black"
+
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/bvWriterDateTxt"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:gravity="center_vertical"
+                        android:text="TextView"
+                        android:textColor="@color/Gray"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/DarkSlateGray"
+                    android:text="제목:"/>
+
+                <EditText
+                    android:id="@+id/bevTitleEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+                    android:textColor="@color/Black">
+
+                </EditText>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="출발일시:"
+                    android:textColor="@color/DarkSlateGray"
+
+                    />
+
+                <TextView
+                    android:id="@+id/bevStartDayBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:padding="5dp"
+
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/Black">
+
+                </TextView>
+
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+                `
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="도착일시:"
+                    android:textColor="@color/DarkSlateGray"
+
+                    />
+
+                <TextView
+                    android:id="@+id/bevArrivaldayBt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+
+                    android:padding="5dp"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/Black">
+
+                </TextView>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="출발지:"
+                    android:textColor="@color/DarkSlateGray"/>
+
+                <EditText
+                    android:id="@+id/bevStartlocaleEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+
+                    android:textColor="@color/Black">
+
+                </EditText>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="목적지:"
+                    android:textColor="@color/DarkSlateGray"/>
+
+                <EditText
+                    android:id="@+id/bevArrivalLocaleEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/Black">
+
+                </EditText>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="여행기간:"
+                    android:textColor="@color/DarkSlateGray"/>
+
+                <EditText
+                    android:id="@+id/bevTermEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+
+                    android:textColor="@color/Black">
+
+                </EditText>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="예정인원:"
+                    android:textColor="@color/DarkSlateGray"/>
+
+                <EditText
+                    android:id="@+id/bevCapacityEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+
+                    android:textColor="@color/Black">
+
+                </EditText>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="왕복/편도:"
+                    android:textColor="@color/DarkSlateGray"/>
+
+                <EditText
+                    android:id="@+id/bevRoundEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+
+                    android:textColor="@color/Black"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="희망 차종(인승):"
+                    android:textColor="@color/DarkSlateGray"/>
+
+                <EditText
+                    android:id="@+id/bevVehicleEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+
+                    android:textColor="@color/Black">
+
+                </EditText>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="차량 대수:"
+                    android:textColor="@color/DarkSlateGray"/>
+
+                <EditText
+                    android:id="@+id/bevCarsEt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:enabled="false"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+
+                    android:textColor="@color/Black">
+
+                </EditText>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray"/>
+
+            <LinearLayout
+                android:id="@+id/bvReplyLo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/CornSilk"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/Gray"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/bvReplyEt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/White"
+            android:hint="댓글을 적어주세요"
+            android:paddingLeft="10dp"/>
+
+        <TextView
+            android:id="@+id/bvReplySendBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingEnd="10dp"
+            android:paddingStart="10dp"
+            android:text="보내기"
+            android:textColor="@color/DarkRed"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

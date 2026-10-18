@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/AliceBlue"
+
+    tools:context="com.windnsoft.tbus.MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+
+        <LinearLayout
+            android:id="@+id/layout_head"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/BlueLight"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="5dip"
+                android:src="@drawable/ic_launcher_mdpi"
+                />
+
+            <TextView
+                android:id="@+id/textView8"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="9"
+                android:gravity="center_vertical"
+                android:text="소식"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+
+                android:textColor="@color/White"/>
+
+            <ImageView
+                android:id="@+id/topCloseBtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:padding="1dp"
+                android:src="@drawable/xbutton_black"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_body"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="950"
+            android:orientation="vertical"
+            >
+
+            <ImageView
+                android:id="@+id/advImg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/Black"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingTop="1px">
+
+                <TextView
+                    android:id="@+id/boardFreeTab"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/prg_border_blue"
+                    android:gravity="center"
+                    android:text="자유게시판"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                    android:textColor="@color/Black"/>
+
+                <TextView
+                    android:id="@+id/boardBusTab"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/prg_border_blue"
+                    android:gravity="center"
+                    android:text="관광버스"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/Black"/>
+
+                <TextView
+                    android:id="@+id/boardEstimateTab"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/prg_border_blue"
+                    android:gravity="center"
+                    android:text="버스견적"
+
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/Black"/>
+
+                <TextView
+                    android:id="@+id/boardTractionTab"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/prg_border_blue"
+                    android:gravity="center"
+
+                    android:text="긴급견인"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/Black"/>
+
+                <TextView
+                    android:id="@+id/boardMyTab"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/prg_border_blue"
+                    android:gravity="center"
+                    android:text="내가쓴글"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                    android:textColor="@color/Black"/>
+
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="9"
+                android:clickable="false"
+                android:gravity="right">
+
+                <com.windnsoft.tbus.Fragment.BusEstimateListView
+                    android:id="@+id/busEstimateView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                </com.windnsoft.tbus.Fragment.BusEstimateListView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:gravity="right"
+                    android:orientation="horizontal"
+                    android:padding="5dp">
+
+                    <ImageView
+                        android:id="@+id/boardInviteBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_margin="5dp"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/freind"/>
+
+                    <ImageView
+                        android:id="@+id/boardWriteBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:layout_margin="5dp"
+                        android:src="@drawable/write"/>
+                </LinearLayout>
+                <!--
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"></androidx.recyclerview.widget.RecyclerView>
+                -->
+                <!--<ListView-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"></ListView>-->
+
+
+            </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/Black"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            >
+
+            <ImageView
+                android:id="@+id/bottomNewsBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/news_on"
+                />
+
+            <ImageView
+                android:id="@+id/bottomCompanyBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/company_off"
+                />
+
+            <ImageView
+                android:id="@+id/bottomInfoBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/info_off"
+                />
+
+            <ImageView
+                android:id="@+id/bottomTalkieBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/walkietalkie_off"
+                />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

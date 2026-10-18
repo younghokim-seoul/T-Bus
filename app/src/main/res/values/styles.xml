@@ -1,0 +1,26 @@
+<resources>
+
+    <style name="AppTheme" parent="android:Theme.Light.NoTitleBar">
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="NewDialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowTitleStyle">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <style name="EmergencyText">
+        <item name="android:textColor">#ff0000</item>
+        <item name="android:shadowColor">#ffffff</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:textSize">25sp</item>
+        <item name="android:shadowRadius">20</item>
+    </style>
+</resources>
