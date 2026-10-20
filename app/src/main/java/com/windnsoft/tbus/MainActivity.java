@@ -19,7 +19,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 import com.windnsoft.tbus.CallSms.CallSmsListFragment;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
@@ -228,7 +228,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             params.width = imgWidth;
             params.height = imgHeight;
             adImg.setLayoutParams(params);
-            Picasso.with(MainActivity.this).load(image).fit().centerCrop().into(adImg);
+            Glide.with(MainActivity.this).load(image).centerCrop().into(adImg);
 
         } else {
             imageLoader.loadImage(imgPath, new ImageLoadingListener() {
@@ -250,7 +250,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     params.height = imgHeight;
                     adImg.setLayoutParams(params);
 
-                    Picasso.with(MainActivity.this).load(s).fit().centerCrop().into(adImg);
+                    Glide.with(MainActivity.this).load(s).centerCrop().into(adImg);
 
                 }
 

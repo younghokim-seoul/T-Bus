@@ -23,7 +23,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.BoardIDs;
@@ -261,7 +261,7 @@ public class BoardListView extends RecyclerView {
                     String imgPath = GetPictureFullPath(item.userProfile);
                     final File image = DiskCacheUtils.findInCache(imgPath, imageLoader.getDiskCache());
                     if (image != null && image.exists()) {
-                        Picasso.with(context).load(image).fit().centerCrop().into(holder.profile);
+                        Glide.with(context).load(image).centerCrop().into(holder.profile);
                     } else {
                         imageLoader.loadImage(imgPath, new ImageLoadingListener() {
                             @Override
@@ -276,7 +276,7 @@ public class BoardListView extends RecyclerView {
 
                             @Override
                             public void onLoadingComplete(String s, View view, final Bitmap bitmap) {
-                                Picasso.with(context).load(s).fit().centerCrop().into(holder.profile);
+                                Glide.with(context).load(s).centerCrop().into(holder.profile);
 
                             }
 

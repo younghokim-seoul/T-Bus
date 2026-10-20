@@ -16,7 +16,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Fragment.CompanyListView;
 import com.windnsoft.tbus.General.WsBitmapTools;
@@ -183,7 +183,7 @@ public class CoListActivity extends Activity implements View.OnClickListener {
             params.width = imgWidth;
             params.height = imgHeight;
             adImg.setLayoutParams(params);
-            Picasso.with(CoListActivity.this).load(image).fit().centerCrop().into(adImg);
+            Glide.with(CoListActivity.this).load(image).centerCrop().into(adImg);
 
         } else {
             imageLoader.loadImage(imgPath, new ImageLoadingListener() {
@@ -205,7 +205,7 @@ public class CoListActivity extends Activity implements View.OnClickListener {
                     params.height = imgHeight;
                     adImg.setLayoutParams(params);
 
-                    Picasso.with(CoListActivity.this).load(s).fit().centerCrop().into(adImg);
+                    Glide.with(CoListActivity.this).load(s).centerCrop().into(adImg);
 
                 }
 

@@ -30,7 +30,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
@@ -162,7 +162,7 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
                     params.width = imgWidth;
                     params.height = imgHeight;
                     iv.setLayoutParams(params);
-                    Picasso.with(getActivity()).load(image).fit().centerCrop().into(iv);
+                    Glide.with(getActivity()).load(image).centerCrop().into(iv);
 
                 } else {
                     imageLoader.loadImage(imgPath, new ImageLoadingListener() {
@@ -181,7 +181,7 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
 //                            params.width = imgHeight * bitmap.getWidth() / bitmap.getHeight();
                             params.height = imgHeight;
                             iv.setLayoutParams(params);
-                            Picasso.with(getActivity()).load(s).fit().centerCrop().into(iv);
+                            Glide.with(getActivity()).load(s).centerCrop().into(iv);
                         }
 
                         @Override
