@@ -13,10 +13,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.nostra13.universalimageloader.core.ImageLoader;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.General.WsLog;
@@ -169,7 +169,7 @@ public class CompanyListView extends RecyclerView {
                 }
             });
             if (item.profile != null && !item.profile.isEmpty()) {
-                ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(item.profile), holder.profile);
+                Glide.with(context).load(GlobalVars.GetPictureFullPath(item.profile)).into(holder.profile);
             } else {
                 holder.profile.setImageResource(R.drawable.person);
             }
@@ -207,5 +207,3 @@ public class CompanyListView extends RecyclerView {
     }
 
 }
-
-

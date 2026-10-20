@@ -19,9 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.bumptech.glide.Glide;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.TakeFromCameraAndGallery;
 import com.windnsoft.tbus.General.WsLog;
@@ -173,15 +171,13 @@ public class BoardWriteFragment extends DialogFragment implements View.OnClickLi
             return;
         }
         ImageView iv = new ImageView(getActivity());
+        iv.setAdjustViewBounds(true);
         contentLayout.addView(iv);
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) iv.getLayoutParams();
         params.width = LinearLayout.LayoutParams.MATCH_PARENT;
         params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         iv.setLayoutParams(params);
-        DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-        ImageLoader.getInstance().displayImage(uri.toString(), iv, ip);
-//        File file = new File(uri.toString());
-//        images.add(file);
+        Glide.with(getActivity()).load(uri).into(iv);
         File file = new File(WsUtils.getRealPathFromURI(uri, getActivity()));
         imagesList.add(file);
         WsLog.w("file:" + file.getPath());
@@ -209,29 +205,8 @@ public class BoardWriteFragment extends DialogFragment implements View.OnClickLi
                     Uri resultUriGallery = data.getData();
                     if (resultUriGallery == null)
                         resultUriGallery = mCameraPicture.getResultUri(data);
-                    else {
-/*
-                        String uriString = resultUriGallery.toString();
-                        String galleryPath = TakeFromCameraAndGallery.getRealPathFromURI(getActivity().getApplicationContext(), data);
-
-                        Util_Log.logLongInfo("---galleryPath::" + galleryPath, LogLevel.i);
-                        Util_Log.logLongInfo("---uri::" + uriString, LogLevel.i);
-                        resultUriGallery = Uri.fromFile(new File(galleryPath));
-*/
-                    }
 
                     insertImage(resultUriGallery);
-/*
-
-                    mCameraPicture.startIntentCrop(resultUriGallery, new HashMap<String, Integer>() {
-                        {
-                            put("aspectX", 1);
-                            put("aspectY", 1);
-                            put("outputX", 200);
-                            put("outputY", 200);
-                        }
-                    });
-*/
                 } catch (ActivityNotFoundException aNFE) {
                     Toast.makeText(getActivity().getBaseContext(), "이미지가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
                 }

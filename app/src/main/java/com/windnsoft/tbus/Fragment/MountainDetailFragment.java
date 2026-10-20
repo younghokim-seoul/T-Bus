@@ -18,10 +18,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.nostra13.universalimageloader.core.ImageLoader;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.BoardIDs;
@@ -134,7 +134,7 @@ public class MountainDetailFragment extends DialogFragment implements View.OnCli
         }
 
         if (entity.userProfile != null && !entity.userProfile.isEmpty()) {
-            ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(entity.userProfile), ivWriter);
+            Glide.with(getActivity()).load(GlobalVars.GetPictureFullPath(entity.userProfile)).into(ivWriter);
         }
 
         return view;
@@ -277,16 +277,6 @@ public class MountainDetailFragment extends DialogFragment implements View.OnCli
                 reader.setLenient(true);
                 List<ReplyListItemEntity> entityList = (List<ReplyListItemEntity>) gson.fromJson(reader, listType);
 
-//                for (ReplyListItemEntity entity : entityList) {
-//                    if (entity.photos != null && !entity.photos.equals("")) {
-//                        if (entity.photo == null) entity.photo = new ArrayList<>();
-//                        listType = new TypeToken<List<String>>() {
-//                        }.getType();
-//                        List<String> photo = (List<String>) gson.fromJson(entity.photos, listType);
-//                        entity.photo = photo;
-//                    }
-//                    entity.time = entity.time.substring(5, 16);
-//                }
                 inflateReply(entityList);
                 if (scrolldown) {
                     getView().findViewById(R.id.bvReplyLo).post(new Runnable() {
@@ -297,7 +287,6 @@ public class MountainDetailFragment extends DialogFragment implements View.OnCli
                     });
                 }
 
-//                WsLog.i(entityList.get(0).photo.get(0));
             }
 
             @Override
@@ -339,8 +328,7 @@ public class MountainDetailFragment extends DialogFragment implements View.OnCli
             }
 
             if (entity.user_profile != null && !entity.user_profile.isEmpty()) {
-//            DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-                ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(entity.user_profile), profile);
+                Glide.with(getActivity()).load(GlobalVars.GetPictureFullPath(entity.user_profile)).into(profile);
             }
             replayLayout.addView(view);
 

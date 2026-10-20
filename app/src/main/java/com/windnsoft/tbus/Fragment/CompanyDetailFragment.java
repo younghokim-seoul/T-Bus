@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
@@ -20,24 +19,19 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-import com.bumptech.glide.Glide;
 import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
 import com.windnsoft.tbus.R;
 
-import java.io.File;
 import java.util.List;
 
 import static com.windnsoft.tbus.Common.GlobalVars.GetPictureFullPath;
@@ -52,7 +46,6 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
     UserEntity entity;
 
     DialogDismissListener onDismissListener;
-    ImageLoader imageLoader = ImageLoader.getInstance();
 
     public CompanyDetailFragment() {
     }
@@ -141,7 +134,7 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
         ((EditText) view.findViewById(R.id.cvDetailTxt)).setText(entity.detail);
         ImageView ivWriter = (ImageView) view.findViewById(R.id.bvWriterImg);
         if (entity.profile != null && !entity.profile.isEmpty()) {
-            imageLoader.displayImage(GetPictureFullPath(entity.profile), ivWriter);
+            Glide.with(getActivity()).load(GetPictureFullPath(entity.profile)).into(ivWriter);
         }
 
         if (entity.photoList != null && entity.photoList.size() > 0) {
@@ -153,46 +146,12 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
                 final ImageView iv = new ImageView(getActivity());
                 photoLO.addView(iv);
                 final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) iv.getLayoutParams();
+                params.width = imgWidth;
+                params.height = imgHeight;
+                iv.setLayoutParams(params);
 
                 String imgPath = GetPictureFullPath(img);
-                final File image = DiskCacheUtils.findInCache(imgPath, imageLoader.getDiskCache());
-                if (image != null && image.exists()) {
-//                    Point imgSize = WsBitmapTools.getBitmapSize(image.getPath());
-//                    params.width = imgHeight * imgSize.x / imgSize.y;
-                    params.width = imgWidth;
-                    params.height = imgHeight;
-                    iv.setLayoutParams(params);
-                    Glide.with(getActivity()).load(image).centerCrop().into(iv);
-
-                } else {
-                    imageLoader.loadImage(imgPath, new ImageLoadingListener() {
-                        @Override
-                        public void onLoadingStarted(String s, View view) {
-//                            iv.setImageBitmap(null);
-                        }
-
-                        @Override
-                        public void onLoadingFailed(String s, View view, FailReason failReason) {
-                        }
-
-                        @Override
-                        public void onLoadingComplete(String s, View view, final Bitmap bitmap) {
-                            params.width = imgWidth;
-//                            params.width = imgHeight * bitmap.getWidth() / bitmap.getHeight();
-                            params.height = imgHeight;
-                            iv.setLayoutParams(params);
-                            Glide.with(getActivity()).load(s).centerCrop().into(iv);
-                        }
-
-                        @Override
-                        public void onLoadingCancelled(String s, View view) {
-
-                        }
-                    });
-                }
-
-//                DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.IN_SAMPLE_INT).build();
-//                ImageLoader.getInstance().displayImage(GetPictureFullPath(img), iv, ip);
+                Glide.with(getActivity()).load(imgPath).centerCrop().into(iv);
             }
         }
 

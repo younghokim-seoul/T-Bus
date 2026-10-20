@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,14 +15,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-import com.bumptech.glide.Glide;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.BoardIDs;
@@ -37,7 +32,6 @@ import com.windnsoft.tbus.Http.ResponseCodes;
 import com.windnsoft.tbus.Http.ResponseMessageEntity;
 import com.windnsoft.tbus.R;
 
-import java.io.File;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.text.Collator;
@@ -63,7 +57,6 @@ public class BoardListView extends RecyclerView {
     private List<BoardItemEntity> list;
     private ListAdapter adapter;
     private List<NoticeEntity> noticeEntityList;
-    ImageLoader imageLoader = ImageLoader.getInstance();
 
     public void setBoardId(int bid) {
         this.bid = bid;
@@ -259,33 +252,7 @@ public class BoardListView extends RecyclerView {
                 holder.profile.setImageBitmap(null);
                 if (item.userProfile != null && !item.userProfile.equals("")) {
                     String imgPath = GetPictureFullPath(item.userProfile);
-                    final File image = DiskCacheUtils.findInCache(imgPath, imageLoader.getDiskCache());
-                    if (image != null && image.exists()) {
-                        Glide.with(context).load(image).centerCrop().into(holder.profile);
-                    } else {
-                        imageLoader.loadImage(imgPath, new ImageLoadingListener() {
-                            @Override
-                            public void onLoadingStarted(String s, View view) {
-//                            holder.profile.setImageBitmap(null);
-                            }
-
-                            @Override
-                            public void onLoadingFailed(String s, View view, FailReason failReason) {
-
-                            }
-
-                            @Override
-                            public void onLoadingComplete(String s, View view, final Bitmap bitmap) {
-                                Glide.with(context).load(s).centerCrop().into(holder.profile);
-
-                            }
-
-                            @Override
-                            public void onLoadingCancelled(String s, View view) {
-
-                            }
-                        });
-                    }
+                    Glide.with(context).load(imgPath).centerCrop().into(holder.profile);
                 } else {
                     holder.profile.setImageResource(R.drawable.person);
                 }
@@ -299,16 +266,6 @@ public class BoardListView extends RecyclerView {
                         openItemView(bid, item);
                     }
                 });
-/*
-            if (item.userProfile != null && !item.userProfile.isEmpty()) {
-                ImageAware imageAware = new ImageViewAware(holder.profile, false);
-                imageLoader.displayImage(GetPictureFullPath(item.userProfile), imageAware);
-//            DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-//                ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(item.userProfile), holder.profile);
-            } else {
-                holder.profile.setImageResource(R.drawable.person);
-            }
-*/
             } else if (viewHolder instanceof HeaderHolder) {
                 HeaderHolder holder = (HeaderHolder) viewHolder;
 
@@ -316,7 +273,6 @@ public class BoardListView extends RecyclerView {
                     holder.layout.removeAllViews();
                     for (final NoticeEntity entity : noticeEntityList) {
                         View view = LayoutInflater.from(getContext()).inflate(R.layout.notice_header_item, null);
-//                        View view = Inflater.fro inflater.inflate(R.layout.reply_item, null);
                         ((TextView) view.findViewById(R.id.ntTitleTxt)).setText(entity.title);
                         view.setOnClickListener(new OnClickListener() {
                             @Override
@@ -414,5 +370,3 @@ public class BoardListView extends RecyclerView {
 
 
 }
-
-

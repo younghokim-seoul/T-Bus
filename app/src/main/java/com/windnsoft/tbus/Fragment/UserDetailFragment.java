@@ -14,14 +14,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.windnsoft.tbus.Common.GlobalVars;
-import com.windnsoft.tbus.Common.ImageLoaderInit;
 import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.TakeFromCameraAndGallery;
@@ -188,23 +185,20 @@ public class UserDetailFragment extends DialogFragment implements View.OnClickLi
         ((TextView) getView().findViewById(R.id.userAddrTxt)).setText(userEntity.ride);
         ((TextView) getView().findViewById(R.id.userCompTxt)).setText(userEntity.company_name);
         ((TextView) getView().findViewById(R.id.userNameTxt)).setText(userEntity.name);
-        ImageLoaderInit.initIfNeeded(getActivity());
         if (userEntity.profile != null && !userEntity.profile.isEmpty()) {
-            ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(userEntity.profile), (ImageView) getView().findViewById(R.id.userProfileImg));
-
+            Glide.with(getActivity()).load(GlobalVars.GetPictureFullPath(userEntity.profile)).into((ImageView) getView().findViewById(R.id.userProfileImg));
         }
         if (userEntity.photoList != null && !userEntity.photoList.isEmpty()) {
             LinearLayout photoLO = (LinearLayout) getView().findViewById(R.id.userPhotoLo);
             for (String img : userEntity.photoList) {
                 ImageView iv = new ImageView(getActivity());
+                iv.setAdjustViewBounds(true);
                 photoLO.addView(iv);
                 LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) iv.getLayoutParams();
                 params.width = LinearLayout.LayoutParams.MATCH_PARENT;
                 params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
                 iv.setLayoutParams(params);
-                DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-                ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(img), iv, ip);
-
+                Glide.with(getActivity()).load(GlobalVars.GetPictureFullPath(img)).into(iv);
             }
         }
     }

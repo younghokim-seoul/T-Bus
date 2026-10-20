@@ -14,10 +14,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.nostra13.universalimageloader.core.ImageLoader;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Entities.BusEstimateEntity;
 import com.windnsoft.tbus.General.DialogDismissListener;
@@ -166,8 +166,7 @@ public class BusEstimateListView extends RecyclerView {
                 }
             });
             if (item.userProfile != null && !item.userProfile.isEmpty()) {
-//            DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-                ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(item.userProfile), holder.profile);
+                Glide.with(context).load(GlobalVars.GetPictureFullPath(item.userProfile)).into(holder.profile);
             } else
                 holder.profile.setImageResource(R.drawable.person);
 
@@ -210,5 +209,3 @@ public class BusEstimateListView extends RecyclerView {
     }
 
 }
-
-

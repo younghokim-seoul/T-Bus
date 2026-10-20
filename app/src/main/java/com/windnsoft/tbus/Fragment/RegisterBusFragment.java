@@ -23,10 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.windnsoft.tbus.Common.BaseApplication;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.UserEntity;
@@ -256,15 +254,13 @@ public class RegisterBusFragment extends DialogFragment implements View.OnClickL
         }
         LinearLayout contentLayout = (LinearLayout) getView().findViewById(R.id.joinPhotoLo);
         ImageView iv = new ImageView(getActivity());
+        iv.setAdjustViewBounds(true);
         contentLayout.addView(iv);
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) iv.getLayoutParams();
         params.width = LinearLayout.LayoutParams.MATCH_PARENT;
         params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         iv.setLayoutParams(params);
-        DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-        ImageLoader.getInstance().displayImage(uri.toString(), iv, ip);
-//        File file = new File(uri.toString());
-//        images.add(file);
+        Glide.with(getActivity()).load(uri).into(iv);
         File file = new File(WsUtils.getRealPathFromURI(uri, getActivity()));
         photoList.add(file);
     }

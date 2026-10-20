@@ -10,7 +10,6 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.windnsoft.tbus.Common.BaseApplication;
-import com.windnsoft.tbus.Common.ImageLoaderInit;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.Fragment.RegisterFragment;
@@ -73,7 +72,6 @@ public class IntroActivity extends Activity {
 
         } else {
             login();
-            ImageLoaderInit.initIfNeeded(this);
         }
 
     }

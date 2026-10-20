@@ -17,14 +17,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.windnsoft.tbus.Common.GlobalVars;
-import com.windnsoft.tbus.Common.ImageLoaderInit;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.BoardIDs;
 import com.windnsoft.tbus.Entities.BoardItemEntity;
@@ -121,21 +118,20 @@ public class BoardDetailFragment extends DialogFragment implements View.OnClickL
         }
 
         if (entity.userProfile != null && !entity.userProfile.isEmpty()) {
-            ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(entity.userProfile), ivWriter);
+            Glide.with(getActivity()).load(GlobalVars.GetPictureFullPath(entity.userProfile)).into(ivWriter);
         }
 
         if (entity.photo != null && entity.photo.size() > 0) {
             LinearLayout photoLO = (LinearLayout) view.findViewById(R.id.bvPhotosLo);
-            ImageLoaderInit.initIfNeeded(getActivity());
             for (String img : entity.photo) {
                 ImageView iv = new ImageView(getActivity());
+                iv.setAdjustViewBounds(true);
                 photoLO.addView(iv);
                 LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) iv.getLayoutParams();
                 params.width = LinearLayout.LayoutParams.MATCH_PARENT;
                 params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
                 iv.setLayoutParams(params);
-                DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-                ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(img), iv, ip);
+                Glide.with(getActivity()).load(GlobalVars.GetPictureFullPath(img)).into(iv);
             }
         }
         return view;
@@ -292,8 +288,7 @@ public class BoardDetailFragment extends DialogFragment implements View.OnClickL
             }
 
             if (entity.user_profile != null && !entity.user_profile.isEmpty()) {
-//            DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-                ImageLoader.getInstance().displayImage(GlobalVars.GetPictureFullPath(entity.user_profile), profile);
+                Glide.with(getActivity()).load(GlobalVars.GetPictureFullPath(entity.user_profile)).into(profile);
             }
             replayLayout.addView(view);
 

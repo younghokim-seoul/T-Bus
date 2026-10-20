@@ -29,6 +29,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -36,9 +37,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.windnsoft.tbus.Common.BaseApplication;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.UserEntity;
@@ -117,12 +115,6 @@ public class RegisterCoFragment extends DialogFragment implements View.OnClickLi
         view.findViewById(R.id.joinPhotoBt).setOnClickListener(this);
         view.findViewById(R.id.joinTelBtn).setOnClickListener(this);
         view.findViewById(R.id.jcMapSearchBtn).setOnClickListener(this);
-
-//        String phone_number = SharedPreferencesCache.getRealPhoneNumber();
-//        if (phone_number == null || phone_number.equals("")) {
-//            Toast.makeText(getActivity(), "전화번호를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
-//            dismiss();
-//        }
 
         Spinner sectorSpinner = (Spinner) view.findViewById(R.id.jcSectorsSp);
         sectorSpinner.setAdapter(ArrayAdapter.createFromResource(getActivity(), R.array.sector, R.layout.spinner));
@@ -376,15 +368,13 @@ public class RegisterCoFragment extends DialogFragment implements View.OnClickLi
         }
         LinearLayout contentLayout = (LinearLayout) getView().findViewById(R.id.joinPhotoLo);
         ImageView iv = new ImageView(getActivity());
+        iv.setAdjustViewBounds(true);
         contentLayout.addView(iv);
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) iv.getLayoutParams();
         params.width = LinearLayout.LayoutParams.MATCH_PARENT;
         params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         iv.setLayoutParams(params);
-        DisplayImageOptions ip = new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY_STRETCHED).build();
-        ImageLoader.getInstance().displayImage(uri.toString(), iv, ip);
-//        File file = new File(uri.toString());
-//        images.add(file);
+        Glide.with(getActivity()).load(uri).into(iv);
         File file = new File(WsUtils.getRealPathFromURI(uri, getActivity()));
         photoList.add(file);
     }

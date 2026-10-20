@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,18 +13,17 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-import com.nostra13.universalimageloader.utils.DiskCacheUtils;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Fragment.CompanyListView;
-import com.windnsoft.tbus.General.WsBitmapTools;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
 
-import java.io.File;
 import java.util.Date;
 
 import static com.windnsoft.tbus.Common.GlobalVars.GetAdFullPath;
@@ -166,54 +166,32 @@ public class CoListActivity extends Activity implements View.OnClickListener {
     }
 
     void loadAd(){
-        ImageLoader imageLoader = ImageLoader.getInstance();
         Date date = new Date();
         String imgPath = GetAdFullPath("2.jpg?"+date.getDay());
         WsLog.e(imgPath);
-        final File image = DiskCacheUtils.findInCache(imgPath, imageLoader.getDiskCache());
         final ImageView adImg = (ImageView)findViewById(R.id.advImg);
         final Point screenSize = WsUtils.getDeviceScreenSize(CoListActivity.this);
         final int imgWidth = screenSize.x;
 
         final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) adImg.getLayoutParams();
 
-        if (image != null && image.exists()) {
-            Point bitmapSize = WsBitmapTools.getBitmapSize(image.getPath());
-            final int imgHeight = imgWidth * bitmapSize.y / bitmapSize.x;
-            params.width = imgWidth;
-            params.height = imgHeight;
-            adImg.setLayoutParams(params);
-            Glide.with(CoListActivity.this).load(image).centerCrop().into(adImg);
+        Glide.with(CoListActivity.this)
+                .asBitmap()
+                .load(imgPath)
+                .into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
+                        final int imgHeight = imgWidth * bitmap.getHeight() / bitmap.getWidth();
+                        params.width = imgWidth;
+                        params.height = imgHeight;
+                        adImg.setLayoutParams(params);
+                        adImg.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        adImg.setImageBitmap(bitmap);
+                    }
 
-        } else {
-            imageLoader.loadImage(imgPath, new ImageLoadingListener() {
-                @Override
-                public void onLoadingStarted(String s, View view) {
-//                            holder.profile.setImageBitmap(null);
-                }
-
-                @Override
-                public void onLoadingFailed(String s, View view, FailReason failReason) {
-
-                }
-
-                @Override
-                public void onLoadingComplete(String s, View view, final Bitmap bitmap) {
-
-                    final int imgHeight = imgWidth * bitmap.getHeight()/ bitmap.getWidth();
-                    params.width = imgWidth;
-                    params.height = imgHeight;
-                    adImg.setLayoutParams(params);
-
-                    Glide.with(CoListActivity.this).load(s).centerCrop().into(adImg);
-
-                }
-
-                @Override
-                public void onLoadingCancelled(String s, View view) {
-
-                }
-            });
-        }
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                    }
+                });
     }
 }
