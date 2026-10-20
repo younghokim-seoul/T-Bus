@@ -1,6 +1,6 @@
-# T-Bus 서버 도메인 이전 및 REST API 명세서 (Client 전용)
+# T-Bus 서버 도메인 이전 및 앱 호출 Endpoint 명세서
 
-> 본 문서는 서버 도메인/경로 이전에 따른 Android 프로젝트 설정 변경 사항과 신규 서버의 Swagger(`openapi.yaml`) 명세 중 **`admin`을 제외한 클라이언트(`users`, `board`, `reply`, `notice`) API**를 정리한 문서입니다.
+> 본 문서는 서버 도메인/경로 이전에 따른 Android 프로젝트 설정 변경 사항과 **앱([`GlobalVars.java`](app/src/main/java/com/windnsoft/tbus/Common/GlobalVars.java))에서 실제로 호출하는 16개 Endpoint 명세 및 신규 서버 연동 테스트 결과**를 정리한 문서입니다. (`admin` 및 앱 미사용 서블릿 제외)
 
 ---
 
@@ -21,7 +21,7 @@
 
 ### 1.2 Android 프로젝트 내 수정 위치
 
-[`GlobalVars.java`](app/src/main/java/com/windnsoft/tbus/Common/GlobalVars.java) 내 도메인 및 루트 경로 상수가 전체 API 및 이미지 URL 생성에 사용됩니다.
+[`GlobalVars.java`](app/src/main/java/com/windnsoft/tbus/Common/GlobalVars.java) 내 `Domain`과 `PathRoot` 2곳만 변경하면 앱에서 호출하는 모든 API와 이미지 경로가 신규 서버를 바라보게 됩니다.
 
 ```java
 // app/src/main/java/com/windnsoft/tbus/Common/GlobalVars.java
@@ -31,15 +31,43 @@ public final static String Domain = "15.164.102.251:8080"; // 기존: "1.234.63.
 final static String PathRoot = "TBusWebapp2";              // 기존: "TBusWebapp"
 ```
 
-- [`HttpRequestParams.buildUrl()`](app/src/main/java/com/windnsoft/tbus/Http/HttpRequestParams.java)는 내부적으로 `Uri.Builder.authority(domain)`를 사용하므로 `15.164.102.251:8080` 형태의 포트 포함 주소를 그대로 지원합니다.
-- Android 9(API 28) 이상을 타겟팅하여 빌드/실행할 경우 `http://` 평문 통신을 허용하기 위해 [`AndroidManifest.xml`](app/src/main/AndroidManifest.xml)의 `<application>` 태그에 `android:usesCleartextTraffic="true"` 설정이 필요합니다.
+> **참고**: `minSdk 28` 이상 환경에서 `http://` 평문 통신을 수행하려면 [`AndroidManifest.xml`](app/src/main/AndroidManifest.xml)의 `<application>` 태그에 `android:usesCleartextTraffic="true"` 속성이 필요합니다.
 
 ---
 
-## 2. 공통 API 규격
+## 2. 앱 실제 호출 Endpoint 목록 및 테스트 결과 요약 (총 16개)
 
-- **HTTP Method**: 모든 API는 **`POST`** 방식으로 호출합니다. (대부분의 서블릿은 `GET` 요청 시 `404` 반환)
-- **요청 Content-Type**:
+| 분류 | GlobalVars 상수명 | Endpoint 경로 | 앱 내 호출 위치 | 신규 서버 상태 |
+| :---: | :--- | :--- | :--- | :---: |
+| **회원/업체** | `PathUserLoginUrl` | `POST /servlet/users/login` | `UsersOperator.login()` (`IntroActivity`, `RegisterNormalFragment`) | ✅ 정상 (`200`) |
+| **회원/업체** | `PathUserJoinUrl` | `POST /servlet/users/join` | `UsersOperator.register()` (`RegisterNormalFragment`) | ✅ 스펙 일치 |
+| **회원/업체** | `PathUserJoinBusUrl` | `POST /servlet/users/joinBus` | `UsersOperator.registerBus()` (`RegisterBusFragment`) | ✅ 스펙 일치 |
+| **회원/업체** | `PathUserJoinCoUrl` | `POST /servlet/users/joinCo` | `UsersOperator.registerCo()` (`RegisterCoFragment`) | ✅ 스펙 일치 |
+| **회원/업체** | `PathUserInfoUrl` | `POST /servlet/users/getInfo` | `UsersOperator.getUserInfo()` (`UserDetailFragment`) | ✅ 정상 (`200`) |
+| **회원/업체** | `PathCoListUrl` | `POST /servlet/users/getCoList` | `CompanyListView.loadList()` | ✅ 정상 (`200`) |
+| **게시판** | `PathBoardList` | `POST /servlet/board/getList` | `BoardListView.loadList()` | ✅ 정상 (`200`) |
+| **게시판** | `PathBoardMyList` | `POST /servlet/board/getMyList` | `BoardListView.loadList()` (`bid == BoardIDs.My`) | ✅ 정상 (`200`) |
+| **게시판** | `PathUploadBoard` | `POST /servlet/board/Upload` | `BoardOperator.upload()` (`BoardWriteFragment`) | ✅ 스펙 일치 |
+| **버스견적** | `PathBusEstimateList` | `POST /servlet/board/getBusEstimateList` | `BusEstimateListView.loadList()` | ✅ 정상 (`200`) |
+| **버스견적** | `PathUploadBusEstimate` | `POST /servlet/board/UploadBusEstimate` | `BoardOperator.uploadBusEstimate()` (`BusEstimateWriteFragment`) | ✅ 스펙 일치 |
+| **산악/여행** | `PathMountainList` | `POST /servlet/board/getMountainList` | `MountainListView.loadList()` | ✅ 정상 (`200`) |
+| **산악/여행** | `PathUploadMountain` | `POST /servlet/board/UploadMountain` | `BoardOperator.uploadMountain()` (`MountainWriteFragment`) | ✅ 스펙 일치 |
+| **산악/여행** | `PathMountainBookStateChange` | `POST /servlet/board/updateMountainState` | `MountainDetailFragment.sendBookStateChange()` | ✅ 스펙 일치 |
+| **댓글** | `PathReplyList` | `POST /servlet/reply/getList` | `ReplayOperator.getList()` (각 상세 Fragment) | ✅ 정상 (`200`) |
+| **댓글** | `PathReplyInsert` | `POST /servlet/reply/insert` | `ReplayOperator.insert()` (각 상세 Fragment) | ✅ 스펙 일치 |
+| **공지사항** | `PathNoticeList` | `POST /servlet/notice/getList` | `BoardListView.loadNotice()` | ✅ 정상 (`200`) |
+| **정적 이미지** | `GetPictureFullPath()` | `GET /tbuspic/{filename}` | 프로필 및 게시글/업체 첨부 이미지 로드 | ✅ 정상 (`200`) |
+| **광고 이미지** | `GetAdFullPath()` | `GET /tbuspic/adpic/{1,2,3}.jpg` | `MainActivity`, `CoListActivity`, `InfoListActivity` | ✅ 정상 (`200`) |
+
+> **참고**: `GlobalVars.PathUploadUserPicture` (`/servlet/users/UploadPicture`) 및 `UsersOperator.getCoUserList()`는 코드 내 선언만 되어 있고 앱 UI 어디에서도 호출되지 않는 미사용 코드입니다.
+
+---
+
+## 3. 공통 API 규격 및 상수 코드표
+
+### 3.1 요청 및 응답 규격
+- **HTTP Method**: 모든 API는 **`POST`** 방식으로 호출합니다. (`GET` 요청 시 `404` 반환)
+- **Content-Type**:
   - 일반 요청: `application/x-www-form-urlencoded`
   - 파일 업로드: `multipart/form-data`
 - **공통 응답 구조 (`ResponseBasic` / 앱 내 [`ResponseMessageEntity`](app/src/main/java/com/windnsoft/tbus/Http/ResponseMessageEntity.java))**:
@@ -49,354 +77,145 @@ final static String PathRoot = "TBusWebapp2";              // 기존: "TBusWebap
     "msg": "{ ...JSON 문자열로 직렬화된 결과 객체 또는 배열... }"
   }
   ```
-  - `code` (`integer`): 처리 결과 코드 (`200` = 성공)
-  - `msg` (`string`): 성공 시 결과 객체/리스트가 **JSON 문자열**로 직렬화되어 담기며, 실패 시 오류 메시지가 반환됩니다.
-- **HTTP 응답 상태 코드**:
-  - `200 OK`: 처리 결과 반환 (`code` 필드로 성공 여부 판단)
-  - `400 Bad Request`: 요청 파라미터 오류
-  - `404 Not Found`: 필수 파라미터 누락 또는 `GET` 요청
+
+### 3.2 주요 코드 상수
+- **회원 유형 ([`UserTypes.java`](app/src/main/java/com/windnsoft/tbus/Entities/UserTypes.java))**: `1` = 일반(`Normal`), `2` = 관광버스 기사(`Bus`), `3` = 업체(`Co`)
+- **게시판 ID ([`BoardIDs.java`](app/src/main/java/com/windnsoft/tbus/Entities/BoardIDs.java))**:
+  - `1`: 자유게시판 (`Free`)
+  - `2`: 관광버스 (`Bus`)
+  - `4`: 긴급견인 (`Traction`)
+  - `9`: 내가쓴글 (`My`)
+  - `11`: 직거래장터 (`Deals`)
+  - `12`: 단속공유 (`Interdiction`)
+  - `13`: 배차공차 (`Dispense`)
+  - `14`: 업계뉴스 (`News`)
+  - `15`: 교통정보 (`Traffic`)
+  - `16`: 축제일정 (`Festival`)
+  - `110`: 버스견적 (`Estimate`)
+  - `120`: 산행, 여행 (`Mountain`)
+- **산악 게시글 조회 필터 ([`MountainListType.java`](app/src/main/java/com/windnsoft/tbus/Entities/MountainListType.java))**: `1` = 전체(`All`), `2` = 예약 가능(`BookEnabled`), `3` = 예약 완료(`BookDisabled`)
 
 ---
 
-## 3. 공통 코드표 (앱 내 상수 기준)
-
-### 3.1 회원 유형 ([`UserTypes.java`](app/src/main/java/com/windnsoft/tbus/Entities/UserTypes.java))
-| 값 (`type`) | 상수명 | 설명 |
-| :---: | :--- | :--- |
-| `1` | `UserTypes.Normal` | 일반 회원 |
-| `2` | `UserTypes.Bus` | 관광버스 기사 회원 |
-| `3` | `UserTypes.Co` | 업체 회원 |
-
-### 3.2 게시판 ID ([`BoardIDs.java`](app/src/main/java/com/windnsoft/tbus/Entities/BoardIDs.java))
-| 값 (`bid`) | 상수명 | 게시판명 | 테이블 키 (`title` / `reply`) |
-| :---: | :--- | :--- | :--- |
-| `1` | `BoardIDs.Free` | 자유게시판 | `bfree` / `bfreere` |
-| `2` | `BoardIDs.Bus` | 관광버스 | `bbus` / `bbusre` |
-| `4` | `BoardIDs.Traction` | 긴급견인 | `btraction` / `btractionre` |
-| `9` | `BoardIDs.My` | 내가쓴글 | - |
-| `11` | `BoardIDs.Deals` | 직거래장터 | `bdeals` / `bdealsre` |
-| `12` | `BoardIDs.Interdiction` | 단속공유 | `binterdiction` / `binterdictionre` |
-| `13` | `BoardIDs.Dispense` | 배차공차 | `bdispense` / `bdispensere` |
-| `14` | `BoardIDs.News` | 업계뉴스 | `bnews` / `bnewsre` |
-| `15` | `BoardIDs.Traffic` | 교통정보 | `btraffic` / `btrafficre` |
-| `16` | `BoardIDs.Festival` | 축제일정 | `bfestival` / `bfestivalre` |
-| `110` | `BoardIDs.Estimate` | 버스견적 | `estimate` / `estimatere` |
-| `120` | `BoardIDs.Mountain` | 산행, 여행 | `mountain` / `mountainre` |
-
-### 3.3 산악 게시글 조회 필터 ([`MountainListType.java`](app/src/main/java/com/windnsoft/tbus/Entities/MountainListType.java))
-| 값 (`listType`) | 상수명 | 설명 |
-| :---: | :--- | :--- |
-| `1` | `MountainListType.All` | 전체 보기 |
-| `2` | `MountainListType.BookEnabled` | 예약 가능 |
-| `3` | `MountainListType.BookDisabled` | 예약 완료 |
-
----
-
-## 4. 클라이언트 API 명세 (`admin` 제외)
+## 4. 앱 호출 Endpoint 상세 명세
 
 ### 4.1 회원 / 업체 (`users`)
 
-#### 1) 회원 로그인
-- **Endpoint**: `POST /servlet/users/login` (`operationId: loginUser`)
+#### 1) 회원 로그인 — `POST /servlet/users/login`
+- **상수**: `GlobalVars.PathUserLoginUrl`
+- **호출부**: [`UsersOperator.login()`](app/src/main/java/com/windnsoft/tbus/Operator/UsersOperator.java#L78-L86)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **설명**: 전화번호(`tel`)로 회원을 조회합니다. 성공 시 `msg`에 `UserEntity` JSON 문자열이 반환됩니다.
-- **앱 내 사용처**: `GlobalVars.PathUserLoginUrl` → `UsersOperator.login()`
 - **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 / 예시 |
+  | 필드명 | 타입 | 필수 | 설명 |
   | :--- | :--- | :---: | :--- |
   | `tel` | `string` | O | 전화번호 (예: `"01012345678"`) |
+- **응답**: `msg`에 [`UserEntity`](app/src/main/java/com/windnsoft/tbus/Entities/UserEntity.java) JSON 문자열 반환 (미가입 번호인 경우 `{"code":405}`)
 
-#### 2) 일반/업체 회원가입
-- **Endpoint**: `POST /servlet/users/join` (`operationId: joinUser`)
+#### 2) 일반 회원가입 — `POST /servlet/users/join`
+- **상수**: `GlobalVars.PathUserJoinUrl`
+- **호출부**: [`UsersOperator.register()`](app/src/main/java/com/windnsoft/tbus/Operator/UsersOperator.java#L24-L76)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathUserJoinUrl` → `UsersOperator.register()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `type` | `integer` | O | 회원 유형 (`1`: 일반, `2`: 버스, `3`: 업체) |
-  | `tel` | `string` | O | 전화번호 |
-  | `name` | `string` | X | 이름 |
-  | `garage` | `string` | X | 차고지 |
-  | `ride` | `string` | X | 차량 종류 |
-  | `passengers` | `integer` | X | 탑승 인원 |
-  | `capacity` | `integer` | X | 수용 인원 |
-  | `car_number` | `string` | X | 차량 번호 |
-  | `product` | `string` | X | 취급 품목 / 소개 |
-  | `sectors` | `string` | X | 업종 |
-  | `locale` | `integer` / `string` | X | 지역 |
-  | `addr` | `string` | X | 주소 |
-  | `manager_name` | `string` | X | 담당자 이름 |
-  | `manager_tel` | `string` | X | 담당자 연락처 |
-  | `contact` | `string` | X | 대표 연락처 |
-  | `usage` | `string` | X | 용도 |
-  | `menu` | `string` | X | 메뉴 |
-  | `capacity_copy1` | `string` | X | 수용 규모 보조 필드 |
-  | `time` | `string` | X | 영업 시간 |
-  | `closed` | `string` | X | 휴무일 |
-  | `parking` | `string` | X | 주차 가능 여부 |
-  | `booking` | `boolean` | X | 예약 가능 여부 |
-  | `detail` | `string` | X | 상세 설명 |
+- **요청 파라미터**: `type`(필수), `tel`(필수), `name` 등 `UserEntity` 필드
 
-#### 3) 업체 회원가입 (프로필/사진 이미지 포함)
-- **Endpoint**: `POST /servlet/users/joinCo` (`operationId: joinCoUser`)
+#### 3) 버스 기사 회원가입 — `POST /servlet/users/joinBus`
+- **상수**: `GlobalVars.PathUserJoinBusUrl`
+- **호출부**: [`UsersOperator.registerBus()`](app/src/main/java/com/windnsoft/tbus/Operator/UsersOperator.java#L88-L128)
 - **Content-Type**: `multipart/form-data`
-- **앱 내 사용처**: `GlobalVars.PathUserJoinCoUrl` → `UsersOperator.registerCo()`
+- **요청 파트**: `type`, `tel`, `name`, `garage`, `ride`, `company_name`, `passengers`, `possible_date`, `car_number`, `profile`(파일), `file0..N`(추가 사진 파일)
+
+#### 4) 업체 회원가입 — `POST /servlet/users/joinCo`
+- **상수**: `GlobalVars.PathUserJoinCoUrl`
+- **호출부**: [`UsersOperator.registerCo()`](app/src/main/java/com/windnsoft/tbus/Operator/UsersOperator.java#L130-L146)
+- **Content-Type**: `multipart/form-data`
 - **요청 파트**:
   | 필드명 | 타입 | 필수 | 설명 |
   | :--- | :--- | :---: | :--- |
-  | `user` | `string` | O | `UserEntity` JSON 문자열 (예: `{"type":3,"tel":"01012345678","name":"업체명"}`) |
-  | `profile` | `binary` | X | 프로필 이미지 파일 |
-  | `file0..N` | `binary` | X | 업체 추가 사진 파일 (앱에서 `file0`, `file1`... 형태로 전송) |
+  | `user` | `string` | O | `UserEntity` JSON 문자열 |
+  | `profile` | `binary` | X | 대표 프로필 이미지 |
+  | `file0..N` | `binary` | X | 업체 추가 이미지 |
 
-#### 4) 버스 기사 회원가입 (프로필/사진 이미지 포함)
-- **Endpoint**: `POST /servlet/users/joinBus` (`operationId: joinBusUser`)
-- **Content-Type**: `multipart/form-data`
-- **앱 내 사용처**: `GlobalVars.PathUserJoinBusUrl` → `UsersOperator.registerBus()`
-- **요청 파트**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `type` | `integer` | X | 회원 유형 (`2`) |
-  | `garage` | `string` | X | 차고지 |
-  | `ride` | `string` | X | 차량 종류 |
-  | `company_name` | `string` | X | 회사명 |
-  | `passengers` | `integer` | X | 탑승 정원 |
-  | `name` | `string` | X | 기사 이름 |
-  | `tel` | `string` | X | 전화번호 |
-  | `possible_date` | `string` | X | 운행 가능일 |
-  | `car_number` | `string` | X | 차량 번호 |
-  | `profile` | `binary` | X | 프로필 이미지 파일 |
-  | `file0..N` | `binary` | X | 차량 추가 사진 파일 (앱에서 `file0`, `file1`... 형태로 전송) |
-
-#### 5) 회원 정보 조회
-- **Endpoint**: `POST /servlet/users/getInfo` (`operationId: getUserInfo`)
+#### 5) 회원 정보 조회 — `POST /servlet/users/getInfo`
+- **상수**: `GlobalVars.PathUserInfoUrl`
+- **호출부**: [`UsersOperator.getUserInfo()`](app/src/main/java/com/windnsoft/tbus/Operator/UsersOperator.java#L148-L156)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathUserInfoUrl` → `UsersOperator.getUserInfo()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `uid` | `integer` | O | 회원 고유 ID (`id`) |
+- **요청 파라미터**: `uid` (`integer`, 필수)
 
-#### 6) 회원 목록 조회 (페이징)
-- **Endpoint**: `POST /servlet/users/getUserList` (`operationId: getUserList`)
+#### 6) 업종/지역별 업체 목록 조회 — `POST /servlet/users/getCoList`
+- **상수**: `GlobalVars.PathCoListUrl`
+- **호출부**: [`CompanyListView.loadList()`](app/src/main/java/com/windnsoft/tbus/Fragment/CompanyListView.java#L52-L99)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `type` | `integer` | O | 회원 유형 |
-  | `page` | `integer` | O | 페이지 번호 (예: `1`) |
-  | `limit` | `integer` | O | 페이지당 개수 (예: `20`) |
-
-#### 7) 회원 검색
-- **Endpoint**: `POST /servlet/users/searchUserList` (`operationId: searchUserList`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `type` | `integer` | O | 회원 유형 |
-  | `keyword` | `string` | O | 검색어 |
-
-#### 8) 업종/지역별 업체 목록 조회
-- **Endpoint**: `POST /servlet/users/getCoList` (`operationId: getCoList`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathCoListUrl` → `CompanyListView.loadList()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `sectors` | `string` | O | 업종 구분 |
-  | `locale` | `string` | O | 지역명 (예: `"서울 강남구"`) |
-
-#### 9) 업체 위치(위경도) 목록 조회
-- **Endpoint**: `POST /servlet/users/getLatLngList` (`operationId: getCoLatLngList`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `token` | `string` | O | 토큰 |
-
-#### 10) 회원 정보 수정
-- **Endpoint**: `POST /servlet/users/updateMember` (`operationId: updateUserInfo`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `user_json` | `string` | O | `UserEntity` JSON 문자열 (예: `{"id":1,"name":"홍길동"}`) |
-
-#### 11) 회원 위치(위경도) 수정
-- **Endpoint**: `POST /servlet/users/updateLatLng` (`operationId: updateUserLatLng`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `user_json` | `string` | O | `UserLatLngEntity` JSON 문자열 |
-
-#### 12) 프로필 사진 변경
-- **Endpoint**: `POST /servlet/users/updateProfilePicture` (`operationId: updateUserProfilePicture`)
-- **Content-Type**: `multipart/form-data`
-- **앱 내 사용처**: 미사용 *(참고: `GlobalVars.PathUploadUserPicture`는 구 경로인 `/servlet/users/UploadPicture`로 정의되어 있음)*
-- **요청 파트**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `uid` | `integer` | O | 회원 ID |
-  | `file` | `binary` | O | 변경할 프로필 이미지 파일 |
-
-#### 13) 회원 사진 추가
-- **Endpoint**: `POST /servlet/users/insertUserPhoto` (`operationId: insertUserPhoto`)
-- **Content-Type**: `multipart/form-data`
-- **앱 내 사용처**: 미사용
-- **요청 파트**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `uid` | `integer` | O | 회원 ID |
-  | `file` | `binary` | O | 추가할 사진 파일 |
-
-#### 14) 회원 사진 삭제
-- **Endpoint**: `POST /servlet/users/removeUserPhoto` (`operationId: removeUserPhoto`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `uid` | `integer` | O | 회원 ID |
-  | `pos` | `integer` | O | 삭제할 사진 위치(인덱스) |
+- **요청 파라미터**: `sectors` (`string`, 필수), `locale` (`string`, 필수)
 
 ---
 
 ### 4.2 게시판 / 견적 / 산악 (`board`)
 
-#### 1) 게시글 목록 조회
-- **Endpoint**: `POST /servlet/board/getList` (`operationId: getBoardList`)
+#### 7) 게시글 목록 조회 — `POST /servlet/board/getList`
+- **상수**: `GlobalVars.PathBoardList`
+- **호출부**: [`BoardListView.loadList()`](app/src/main/java/com/windnsoft/tbus/Fragment/BoardListView.java#L79-L142)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathBoardList` → `BoardListView.loadList()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `bid` | `integer` | O | 게시판 ID (`BoardIDs` 참조) |
+- **요청 파라미터**: `bid` (`integer`, 필수)
 
-#### 2) 게시글 목록 조회 (페이징)
-- **Endpoint**: `POST /servlet/board/getListPaging` (`operationId: getBoardListPaging`)
+#### 8) 내가 쓴 게시글 목록 조회 — `POST /servlet/board/getMyList`
+- **상수**: `GlobalVars.PathBoardMyList`
+- **호출부**: [`BoardListView.loadList()`](app/src/main/java/com/windnsoft/tbus/Fragment/BoardListView.java#L131-L135)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `bid` | `integer` | O | 게시판 ID |
-  | `pid` | `integer` | X | 페이지 기준 게시글 ID |
+- **요청 파라미터**: `uid` (`integer`, 필수)
 
-#### 3) 내가 작성한 게시글 목록 조회
-- **Endpoint**: `POST /servlet/board/getMyList` (`operationId: getBoardMyList`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathBoardMyList` → `BoardListView.loadList()` (`bid == BoardIDs.My`)
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `uid` | `integer` | O | 회원 ID |
-
-#### 4) 게시글 상세 조회
-- **Endpoint**: `POST /servlet/board/getDetail` (`operationId: getBoardDetail`)
-- **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: 미사용 *(앱에서는 목록 조회 결과를 그대로 `BoardDetailFragment`에 전달)*
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `bid` | `integer` | O | 게시판 ID |
-  | `id` | `integer (int64)` | O | 게시글 ID |
-
-#### 5) 게시글 작성 (이미지 첨부)
-- **Endpoint**: `POST /servlet/board/Upload` (`operationId: uploadBoard`)
+#### 9) 게시글 작성 — `POST /servlet/board/Upload`
+- **상수**: `GlobalVars.PathUploadBoard`
+- **호출부**: [`BoardOperator.upload()`](app/src/main/java/com/windnsoft/tbus/Operator/BoardOperator.java#L25-L43)
 - **Content-Type**: `multipart/form-data`
-- **앱 내 사용처**: `GlobalVars.PathUploadBoard` → `BoardOperator.upload()`
-- **요청 파트**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `uid` | `integer` | O | 작성자 회원 ID |
-  | `bid` | `integer` | O | 게시판 ID |
-  | `contents` | `string` | O | 게시글 본문 내용 |
-  | `files` (`file0..N`) | `binary[]` | X | 첨부 이미지 파일 (필드명 무관, 앱에서는 `file0`, `file1`... 전송) |
+- **요청 파트**: `uid` (`integer`, 필수), `bid` (`integer`, 필수), `contents` (`string`, 필수), `file0..N` (`binary`, 선택)
 
-#### 6) 버스 견적 목록 조회
-- **Endpoint**: `POST /servlet/board/getBusEstimateList` (`operationId: getBusEstimateList`)
+#### 10) 버스 견적 목록 조회 — `POST /servlet/board/getBusEstimateList`
+- **상수**: `GlobalVars.PathBusEstimateList`
+- **호출부**: [`BusEstimateListView.loadList()`](app/src/main/java/com/windnsoft/tbus/Fragment/BusEstimateListView.java#L48-L90)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathBusEstimateList` → `BusEstimateListView.loadList()`
-- **요청 파라미터**: 없음 (`msg`에 `BusEstimateEntity` 리스트 JSON 문자열 반환)
+- **요청 파라미터**: 없음
 
-#### 7) 버스 견적 등록
-- **Endpoint**: `POST /servlet/board/UploadBusEstimate` (`operationId: uploadBusEstimate`)
+#### 11) 버스 견적 등록 — `POST /servlet/board/UploadBusEstimate`
+- **상수**: `GlobalVars.PathUploadBusEstimate`
+- **호출부**: [`BoardOperator.uploadBusEstimate()`](app/src/main/java/com/windnsoft/tbus/Operator/BoardOperator.java#L45-L53)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathUploadBusEstimate` → `BoardOperator.uploadBusEstimate()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `estimate` | `string` | O | `BusEstimateEntity` JSON 직렬화 문자열 (`uid`, `title`, `start_time`, `arrival_time`, `start_locale`, `arrival_locale`, `term`, `capacity`, `round`, `vehicle`, `cars` 등) |
+- **요청 파라미터**: `estimate` ([`BusEstimateEntity`](app/src/main/java/com/windnsoft/tbus/Entities/BusEstimateEntity.java) JSON 문자열, 필수)
 
-#### 8) 산악 게시글 목록 조회
-- **Endpoint**: `POST /servlet/board/getMountainList` (`operationId: getMountainList`)
+#### 12) 산악 게시글 목록 조회 — `POST /servlet/board/getMountainList`
+- **상수**: `GlobalVars.PathMountainList`
+- **호출부**: [`MountainListView.loadList()`](app/src/main/java/com/windnsoft/tbus/Fragment/MountainListView.java#L52-L98)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathMountainList` → `MountainListView.loadList()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `listType` | `integer` | O | 조회 유형 (`1`: 전체, `2`: 예약 가능, `3`: 예약 완료) |
+- **요청 파라미터**: `listType` (`integer`, 필수 — `1`: 전체, `2`: 예약 가능, `3`: 예약 완료)
 
-#### 9) 산악 게시글 등록
-- **Endpoint**: `POST /servlet/board/UploadMountain` (`operationId: uploadMountain`)
+#### 13) 산악 게시글 등록 — `POST /servlet/board/UploadMountain`
+- **상수**: `GlobalVars.PathUploadMountain`
+- **호출부**: [`BoardOperator.uploadMountain()`](app/src/main/java/com/windnsoft/tbus/Operator/BoardOperator.java#L56-L63)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathUploadMountain` → `BoardOperator.uploadMountain()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `mountain` | `string` | O | `MountainEntity` JSON 직렬화 문자열 (`uid`, `title`, `state`, `locale`, `start_t`, `term`, `tax` 등) |
+- **요청 파라미터**: `mountain` ([`MountainEntity`](app/src/main/java/com/windnsoft/tbus/Entities/MountainEntity.java) JSON 문자열, 필수)
 
-#### 10) 산악 게시글 예약 상태 변경
-- **Endpoint**: `POST /servlet/board/updateMountainState` (`operationId: updateMountainState`)
+#### 14) 산악 게시글 예약 상태 변경 — `POST /servlet/board/updateMountainState`
+- **상수**: `GlobalVars.PathMountainBookStateChange`
+- **호출부**: [`MountainDetailFragment.sendBookStateChange()`](app/src/main/java/com/windnsoft/tbus/Fragment/MountainDetailFragment.java#L219-L257)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathMountainBookStateChange` → `MountainDetailFragment.sendBookStateChange()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `uid` | `integer` | O | 작성자 회원 ID |
-  | `id` | `integer (int64)` | O | 산악 게시글 ID |
-  | `state` | `boolean` | O | 예약 상태 (`true`: 예약 가능, `false`: 예약 완료) |
+- **요청 파라미터**: `uid` (`integer`, 필수), `id` (`int64`, 필수), `state` (`boolean`, 필수)
 
 ---
 
-### 4.3 댓글 (`reply`)
+### 4.3 댓글 (`reply`) & 공지사항 (`notice`)
 
-#### 1) 댓글 목록 조회
-- **Endpoint**: `POST /servlet/reply/getList` (`operationId: getReplyList`)
+#### 15) 댓글 목록 조회 — `POST /servlet/reply/getList`
+- **상수**: `GlobalVars.PathReplyList`
+- **호출부**: [`ReplayOperator.getList()`](app/src/main/java/com/windnsoft/tbus/Operator/ReplayOperator.java#L25-L32)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathReplyList` → `ReplayOperator.getList()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `bid` | `integer` | O | 게시판 ID |
-  | `id` | `integer (int64)` | O | 게시글 ID |
+- **요청 파라미터**: `bid` (`integer`, 필수), `id` (`int64`, 필수)
 
-#### 2) 댓글 등록
-- **Endpoint**: `POST /servlet/reply/insert` (`operationId: insertReply`)
+#### 16) 댓글 등록 — `POST /servlet/reply/insert`
+- **상수**: `GlobalVars.PathReplyInsert`
+- **호출부**: [`ReplayOperator.insert()`](app/src/main/java/com/windnsoft/tbus/Operator/ReplayOperator.java#L12-L23)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathReplyInsert` → `ReplayOperator.insert()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `bid` | `integer` | O | 게시판 ID |
-  | `uid` | `integer` | O | 작성자 회원 ID |
-  | `idx` | `integer (int64)` | O | 게시글 ID |
-  | `text` | `string` | O | 댓글 내용 |
+- **요청 파라미터**: `bid` (`integer`, 필수), `uid` (`integer`, 필수), `idx` (`int64`, 필수), `text` (`string`, 필수)
 
----
-
-### 4.4 공지사항 (`notice`)
-
-#### 1) 공지사항 목록 조회
-- **Endpoint**: `POST /servlet/notice/getList` (`operationId: getNoticeList`)
+#### 17) 공지사항 목록 조회 — `POST /servlet/notice/getList`
+- **상수**: `GlobalVars.PathNoticeList`
+- **호출부**: [`BoardListView.loadNotice()`](app/src/main/java/com/windnsoft/tbus/Fragment/BoardListView.java#L144-L179)
 - **Content-Type**: `application/x-www-form-urlencoded`
-- **앱 내 사용처**: `GlobalVars.PathNoticeList` → `BoardListView.loadNotice()`
-- **요청 파라미터**:
-  | 필드명 | 타입 | 필수 | 설명 |
-  | :--- | :--- | :---: | :--- |
-  | `bid` | `integer` | O | 게시판 ID |
+- **요청 파라미터**: `bid` (`integer`, 필수)
