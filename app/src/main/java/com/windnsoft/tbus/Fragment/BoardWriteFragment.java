@@ -159,15 +159,24 @@ public class BoardWriteFragment extends DialogFragment implements View.OnClickLi
     }
 
     public void callTakeAlbum() {
-        // 앨범 호출
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
-        startActivityForResult(intent, TakeFromCameraAndGallery.RequestCode_Gallery);
+        TakeFromCameraAndGallery.runWithMediaPermission(getActivity(), new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
+                startActivityForResult(intent, TakeFromCameraAndGallery.RequestCode_Gallery);
+            }
+        });
     }
 
     void insertImage(final Uri uri) {
         if (uri == null) {
             Toast.makeText(getActivity(), "올바르지 않은 이미지입니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String realPath = WsUtils.getRealPathFromURI(uri, getActivity());
+        if (realPath == null) {
+            Toast.makeText(getActivity(), "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show();
             return;
         }
         ImageView iv = new ImageView(getActivity());
@@ -178,7 +187,7 @@ public class BoardWriteFragment extends DialogFragment implements View.OnClickLi
         params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         iv.setLayoutParams(params);
         Glide.with(getActivity()).load(uri).into(iv);
-        File file = new File(WsUtils.getRealPathFromURI(uri, getActivity()));
+        File file = new File(realPath);
         imagesList.add(file);
         WsLog.w("file:" + file.getPath());
     }

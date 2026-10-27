@@ -1,5 +1,6 @@
 package com.windnsoft.tbus.General;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
@@ -12,16 +13,25 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
+
+import androidx.core.content.FileProvider;
+
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.normal.TedPermission;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +66,73 @@ public class TakeFromCameraAndGallery {
         this.context = fragment.getActivity();
     }
 
+    private Activity getActiveActivity() {
+        if (fragment != null && fragment.getActivity() != null) {
+            return fragment.getActivity();
+        }
+        return context;
+    }
+
+    public static void runWithMediaPermission(final Context ctx, final Runnable onGranted) {
+        String mediaPermission = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        TedPermission.create()
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        if (onGranted != null) {
+                            onGranted.run();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        if (ctx != null) {
+                            Toast.makeText(ctx, "사진 접근 권한이 거부되었습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setDeniedMessage("사진을 첨부하기 위해 사진/미디어 접근 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
+                .setPermissions(mediaPermission)
+                .check();
+    }
+
+    public static void runWithCameraPermission(final Context ctx, final Runnable onGranted) {
+        TedPermission.create()
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        if (onGranted != null) {
+                            onGranted.run();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        if (ctx != null) {
+                            Toast.makeText(ctx, "카메라 권한이 거부되었습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setDeniedMessage("사진 촬영을 위해 카메라 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
+                .setPermissions(Manifest.permission.CAMERA)
+                .check();
+    }
+
+    private Uri getSafeUriForFile(File file) {
+        Activity act = getActiveActivity();
+        if (act == null) {
+            return Uri.fromFile(file);
+        }
+        try {
+            return FileProvider.getUriForFile(act, act.getPackageName() + ".fileprovider", file);
+        } catch (Exception e) {
+            return Uri.fromFile(file);
+        }
+    }
+
     public void setSaveFilePath(String path) {
         saveFile = path;
     }
@@ -69,85 +146,116 @@ public class TakeFromCameraAndGallery {
     }
 
     public void startIntentCameraWithCrop() {
-        //		Uri uri = Uri.fromFile((null!=saveFile && !"".equals(saveFile))? new File(saveFile): generateTempFilePath());
-        Uri uri = Uri.fromFile((null != tempFile && !"".equals(tempFile)) ? new File(tempFile) : generateTempFilePath());
+        runWithCameraPermission(getActiveActivity(), new Runnable() {
+            @Override
+            public void run() {
+                File out = (null != tempFile && !"".equals(tempFile)) ? new File(tempFile) : generateTempFilePath();
+                Uri uri = getSafeUriForFile(out);
 
-        Intent intent = new Intent();
-        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra("crop", "true");
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-        intent.putExtra("outputFormat", CompressFormat.PNG.toString());
-        intent.putExtra("return-data", true); //용량이 크면 오류난다
-        if (fragment != null)
-            fragment.startActivityForResult(intent, RequestCode_CameraCrop);
-        else if (context != null)
-            context.startActivityForResult(intent, RequestCode_CameraCrop);
+                Intent intent = new Intent();
+                intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra("crop", "true");
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                intent.putExtra("outputFormat", CompressFormat.PNG.toString());
+                intent.putExtra("return-data", true);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                if (fragment != null)
+                    fragment.startActivityForResult(intent, RequestCode_CameraCrop);
+                else if (context != null)
+                    context.startActivityForResult(intent, RequestCode_CameraCrop);
+            }
+        });
     }
 
     public void startIntentGalleryWithCrop() {
-        Uri uri = Uri.fromFile((null != tempFile && !"".equals(tempFile)) ? new File(tempFile) : generateTempFilePath());
-        // pick from file
-        /**
-         * To select an image from existing files, use
-         * Intent.createChooser to open image chooser. Android will
-         * automatically display a TypeList of supported applications,
-         * such as image gallery or file manager.
-         */
-        Intent intent = new Intent();
+        runWithMediaPermission(getActiveActivity(), new Runnable() {
+            @Override
+            public void run() {
+                File out = (null != tempFile && !"".equals(tempFile)) ? new File(tempFile) : generateTempFilePath();
+                Uri uri = getSafeUriForFile(out);
 
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        intent.putExtra("crop", "true");
-        intent.putExtra("outputFormat", CompressFormat.PNG.toString());
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-        //		intent.putExtra("return-data", true); //용량이 크면 오류난다
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.putExtra("crop", "true");
+                intent.putExtra("outputFormat", CompressFormat.PNG.toString());
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-        if (fragment != null)
-            fragment.startActivityForResult(Intent.createChooser(intent, "Choice"), RequestCode_GalleryCrop);
-        else if (context != null)
-            context.startActivityForResult(Intent.createChooser(intent, "Choice"), RequestCode_GalleryCrop);
+                if (fragment != null)
+                    fragment.startActivityForResult(Intent.createChooser(intent, "Choice"), RequestCode_GalleryCrop);
+                else if (context != null)
+                    context.startActivityForResult(Intent.createChooser(intent, "Choice"), RequestCode_GalleryCrop);
+            }
+        });
     }
 
     public void startIntentCamera() {
-//		Uri uri = Uri.fromFile((null!=tempFile && !"".equals(tempFile))? new File(tempFile): generateTempFilePath());
-
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        //		intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-        if (fragment != null)
-            fragment.startActivityForResult(intent, RequestCode_Camera);
-        else if (context != null)
-            context.startActivityForResult(intent, RequestCode_Camera);
+        runWithCameraPermission(getActiveActivity(), new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (fragment != null)
+                    fragment.startActivityForResult(intent, RequestCode_Camera);
+                else if (context != null)
+                    context.startActivityForResult(intent, RequestCode_Camera);
+            }
+        });
     }
 
     public void startIntentGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        runWithMediaPermission(getActiveActivity(), new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
-        if (fragment != null)
-            fragment.startActivityForResult(intent, RequestCode_Gallery);
-        else if (context != null)
-            context.startActivityForResult(intent, RequestCode_Gallery);
+                if (fragment != null)
+                    fragment.startActivityForResult(intent, RequestCode_Gallery);
+                else if (context != null)
+                    context.startActivityForResult(intent, RequestCode_Gallery);
+            }
+        });
     }
 
     public void startIntentCrop(Uri orgUri, Map<String, Integer> extraSet) {
-
-        Uri uri = Uri.fromFile((null != tempFile && !"".equals(tempFile)) ? new File(tempFile) : generateTempFilePath());
+        File out = (null != tempFile && !"".equals(tempFile)) ? new File(tempFile) : generateTempFilePath();
+        Activity act = getActiveActivity();
+        if (act != null && orgUri != null) {
+            copyUriToFile(act, orgUri, out);
+        }
+        Uri uri = getSafeUriForFile(out);
 
         Intent intent = new Intent("com.android.camera.action.CROP");
         intent.setDataAndType(orgUri, "image/*");
         intent.putExtra("crop", "true");
 
-        if(extraSet!=null){
-            for(String key: extraSet.keySet()){
+        if (extraSet != null) {
+            for (String key : extraSet.keySet()) {
                 intent.putExtra(key, extraSet.get(key));
             }
         }
         intent.putExtra("scale", true);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         intent.putExtra("return-data", true);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         if (fragment != null)
             fragment.startActivityForResult(intent, RequestCode_Crop);
         else if (context != null)
             context.startActivityForResult(intent, RequestCode_Crop);
+    }
+
+    private void copyUriToFile(Context ctx, Uri srcUri, File dstFile) {
+        try (InputStream in = ctx.getContentResolver().openInputStream(srcUri);
+             OutputStream out = new FileOutputStream(dstFile)) {
+            if (in == null) return;
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+        } catch (Exception e) {
+            WsLog.e("copyUriToFile failed: " + e.getMessage());
+        }
     }
 
     public Uri getResultUri(Intent data) {
@@ -157,7 +265,7 @@ public class TakeFromCameraAndGallery {
         if (null != tempFile && !"".equals(tempFile)) {
             // save된 file이 있다면
             File temp = new File(tempFile);
-            if (temp.exists()) {
+            if (temp.exists() && temp.length() > 0) {
                 savedFileString = tempFile;
             }
             tempFile = null;
@@ -166,8 +274,14 @@ public class TakeFromCameraAndGallery {
         if (null == savedFileString && null != data) {
             // data로 uri 가 반환된다면
             Uri uriData = data.getData();
-            if (null != uriData && new File(uriData.getPath()).length() > 0) {
-                savedFileString = uriData.getPath();
+            if (null != uriData) {
+                Activity act = getActiveActivity();
+                if (act != null) {
+                    String realPath = WsUtils.getRealPathFromURI(uriData, act);
+                    if (realPath != null && new File(realPath).length() > 0) {
+                        savedFileString = realPath;
+                    }
+                }
             }
         }
 
@@ -183,7 +297,7 @@ public class TakeFromCameraAndGallery {
         Bundle extras;
         Bitmap photo;
 
-        if (null == savedFileString && null != (extras = data.getExtras()) && null != (photo = extras.getParcelable("data"))) {
+        if (null == savedFileString && null != data && null != (extras = data.getExtras()) && null != (photo = extras.getParcelable("data"))) {
             if (photo.getWidth() > 0 && photo.getHeight() > 0) {
                 File temp = generateTempFilePath();
                 WsBitmapTools.saveBitmap(photo, temp.getAbsolutePath());
@@ -192,9 +306,11 @@ public class TakeFromCameraAndGallery {
             }
         }
 
-        File file = new File(savedFileString);
-        if (file.exists() && file.length() > 0)
-            ret = Uri.fromFile(file);
+        if (savedFileString != null) {
+            File file = new File(savedFileString);
+            if (file.exists() && file.length() > 0)
+                ret = Uri.fromFile(file);
+        }
 
         return ret;
     }
@@ -202,6 +318,8 @@ public class TakeFromCameraAndGallery {
     @SuppressWarnings("deprecation")
     private Uri getSamsungPhoneUri() {
         Uri imageCaptureUri = null;
+        Activity act = getActiveActivity();
+        if (act == null) return null;
 
         try {
             Log.i("TAG", "inside Samsung Phones");
@@ -214,7 +332,7 @@ public class TakeFromCameraAndGallery {
 
             String sort = MediaStore.Images.Thumbnails._ID + " DESC";
 
-            Cursor myCursor = context.managedQuery(
+            Cursor myCursor = act.managedQuery(
                     MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
                     projection, selection, null, sort);
 
@@ -236,7 +354,7 @@ public class TakeFromCameraAndGallery {
                     MediaStore.Images.ImageColumns.DATA};
 
             String largeFileSort = MediaStore.Images.ImageColumns._ID + " DESC";
-            myCursor = context.managedQuery(
+            myCursor = act.managedQuery(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     largeFileProjection, null, null, largeFileSort);
 
@@ -260,41 +378,32 @@ public class TakeFromCameraAndGallery {
     }
 
     private Uri getResultUriFromMediaStore() {
+        Activity act = getActiveActivity();
         File toFile = new File(tempFile);
         File fromFile = null;
         FileInputStream inputStream = null;
         FileOutputStream outputStream = null;
-        //		if (saveFile != null) {
-        //			File f = new File(saveFile);
-        //			if (f.exists()) {
-        //				f.delete();
-        //			}
-        //		}
 
         Uri uriImages = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         int id = -1;
 
         String[] IMAGE_PROJECTION = {
-                MediaStore.Images.ImageColumns.DATA, //데이터의 파일 절대 경로(문자열)
-                MediaStore.Images.ImageColumns._ID, //데이터의 테이블상의 아이디(정수)
+                MediaStore.Images.ImageColumns.DATA,
+                MediaStore.Images.ImageColumns._ID,
         };
         try {
-            Cursor cursorImages = context.getContentResolver().query(uriImages, IMAGE_PROJECTION, null, null, null);
+            Cursor cursorImages = act.getContentResolver().query(uriImages, IMAGE_PROJECTION, null, null, null);
             if (cursorImages != null && cursorImages.moveToLast()) {
-                fromFile = new File(cursorImages.getString(0)); //이 것이 경로
-                id = cursorImages.getInt(1); //이 것이 아이디
+                fromFile = new File(cursorImages.getString(0));
+                id = cursorImages.getInt(1);
                 cursorImages.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // 임시파일의 경로로서, 본인은 원본과 겹치지 않게 아래와 같이 작성하였다.
-        toFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + System.currentTimeMillis() + ".jpg");
+        toFile = new File(act.getExternalFilesDir(Environment.DIRECTORY_PICTURES), System.currentTimeMillis() + ".jpg");
 
         try {
-            // 이 부분이 파일을 복사하는 부분이다.
-            // 이 부분이 없으면 CROP할 때 SK W폰에서 다른 이미지를 불러온다.
-            // 이유는 모르지만 원본이 소실되거나 DB에서 소실되는 지도 모르겠다.
             inputStream = new FileInputStream(fromFile);
             outputStream = new FileOutputStream(toFile);
             FileChannel fcin = inputStream.getChannel();
@@ -313,10 +422,10 @@ public class TakeFromCameraAndGallery {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // 그리고 원본은 지운다.
-        fromFile.delete();
-        // DB상에 남아있는 원본 레코드도 지운다.
-        context.getContentResolver().delete(
+        if (fromFile != null) {
+            fromFile.delete();
+        }
+        act.getContentResolver().delete(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 MediaStore.Images.ImageColumns._ID + "=" + id,
                 null
@@ -325,8 +434,8 @@ public class TakeFromCameraAndGallery {
     }
 
     public File generateTempFilePath() {
-        File parentDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        //		File parentDir = new File(WsMemoryUtil.getUserContentsTemp()+File.separator+DicKey.Dir_UserContentsFace);
+        Activity act = getActiveActivity();
+        File parentDir = act.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         if (!parentDir.exists()) parentDir.mkdirs();
         File file = new File(parentDir, System.currentTimeMillis() + ".png");
         tempFile = file.getAbsolutePath();
@@ -361,11 +470,11 @@ public class TakeFromCameraAndGallery {
     }
 
     private boolean doCrop() {
-
+        Activity act = getActiveActivity();
         final ArrayList<CropOption> cropOptions = new ArrayList<CropOption>();
         Intent intent = new Intent("com.android.camera.action.CROP");
         intent.setType("image/*");
-        List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent, 0);
+        List<ResolveInfo> list = act.getPackageManager().queryIntentActivities(intent, 0);
 
         int size = list.size();
 
@@ -373,10 +482,11 @@ public class TakeFromCameraAndGallery {
             //crop 수행할 api가 없다.
             return false;
         } else {
-            intent.setData(Uri.fromFile(new File(tempFile)));
+            intent.setData(getSafeUriForFile(new File(tempFile)));
 
             intent.putExtra("scale", true);
             intent.putExtra("return-data", true);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
             Intent i = new Intent(intent);
             ResolveInfo res = list.get(0);
@@ -392,7 +502,10 @@ public class TakeFromCameraAndGallery {
 
     @SuppressLint("NewApi")
     public static String getRealPathFromURI(Context context, Intent data) {
-
+        if (data == null || data.getData() == null) return null;
+        if (context instanceof Activity) {
+            return WsUtils.getRealPathFromURI(data.getData(), (Activity) context);
+        }
         Cursor cursor = null;
         try {
             String[] proj = {MediaStore.Images.Media.DATA};
@@ -410,7 +523,7 @@ public class TakeFromCameraAndGallery {
     public File createTempFile4SaveCrop() {
         File tempFile = null;
         try {
-            File outputDir = context.getCacheDir();
+            File outputDir = getActiveActivity().getCacheDir();
             tempFile = File.createTempFile("temp", ".png", outputDir);
         } catch (IOException e) {
             e.printStackTrace();
@@ -418,6 +531,4 @@ public class TakeFromCameraAndGallery {
 
         return tempFile;
     }
-
-
 }

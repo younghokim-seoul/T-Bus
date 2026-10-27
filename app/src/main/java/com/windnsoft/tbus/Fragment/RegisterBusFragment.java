@@ -168,8 +168,13 @@ public class RegisterBusFragment extends DialogFragment implements View.OnClickL
             Toast.makeText(getActivity(), "4장까지 가능합니다.", Toast.LENGTH_SHORT).show();
             return;
         }
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, RequestCode_GalleryOnly);
+        TakeFromCameraAndGallery.runWithMediaPermission(getActivity(), new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(intent, RequestCode_GalleryOnly);
+            }
+        });
     }
 
     @Override
@@ -204,8 +209,13 @@ public class RegisterBusFragment extends DialogFragment implements View.OnClickL
                             put("outputY", 100);
                         }
                     });
-                } catch (ActivityNotFoundException aNFE) {
-                    Toast.makeText(getActivity().getBaseContext(), "이미지가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                } catch (Exception aNFE) {
+                    String fallbackImg = mCameraPicture.getTempFile();
+                    if (fallbackImg != null && new File(fallbackImg).exists()) {
+                        updateProfileImage(fallbackImg);
+                    } else {
+                        Toast.makeText(getActivity().getBaseContext(), "이미지가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 break;
 
@@ -216,8 +226,13 @@ public class RegisterBusFragment extends DialogFragment implements View.OnClickL
                 }
                 try {
                     mCameraPicture.startIntentCrop(resultUriCamera, null);
-                } catch (ActivityNotFoundException aNFE) {
-                    Toast.makeText(getActivity().getBaseContext(), "이미지가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                } catch (Exception aNFE) {
+                    String fallbackImg = mCameraPicture.getTempFile();
+                    if (fallbackImg != null && new File(fallbackImg).exists()) {
+                        updateProfileImage(fallbackImg);
+                    } else {
+                        Toast.makeText(getActivity().getBaseContext(), "이미지가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 break;
 
@@ -232,8 +247,13 @@ public class RegisterBusFragment extends DialogFragment implements View.OnClickL
                     if (resultUriGallery == null)
                         resultUriGallery = mCameraPicture.getResultUri(data);
                     insertImage(resultUriGallery);
-                } catch (ActivityNotFoundException aNFE) {
-                    Toast.makeText(getActivity().getBaseContext(), "이미지가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                } catch (Exception aNFE) {
+                    String fallbackImg = mCameraPicture.getTempFile();
+                    if (fallbackImg != null && new File(fallbackImg).exists()) {
+                        updateProfileImage(fallbackImg);
+                    } else {
+                        Toast.makeText(getActivity().getBaseContext(), "이미지가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 break;
 

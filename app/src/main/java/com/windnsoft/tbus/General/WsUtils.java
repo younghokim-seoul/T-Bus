@@ -20,6 +20,10 @@ import android.widget.Toast;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.normal.TedPermission;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -51,13 +55,38 @@ public class WsUtils {
     }
 
     public static String getRealPathFromURI(Uri uri, Activity context) {
+        if (uri == null || context == null) return null;
+        if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            if (in != null) {
+                File tempFile = new File(context.getCacheDir(), "upload_" + System.currentTimeMillis() + ".jpg");
+                try (OutputStream out = new FileOutputStream(tempFile)) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+                }
+                if (tempFile.exists() && tempFile.length() > 0) {
+                    return tempFile.getAbsolutePath();
+                }
+            }
+        } catch (Exception e) {
+            WsLog.e("Failed to copy URI to cache file: " + e.getMessage());
+        }
+
         String[] projection = {MediaStore.Images.Media.DATA};
-        @SuppressWarnings("deprecation")
-        Cursor cursor = context.managedQuery(uri, projection, null, null, null);
-        if (cursor == null) return null;
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
+        try (Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                return cursor.getString(column_index);
+            }
+        } catch (Exception e) {
+            WsLog.e("Failed to query MediaStore DATA: " + e.getMessage());
+        }
+        return null;
     }
 
     public static void showKeyboard(Activity context, View view) {
