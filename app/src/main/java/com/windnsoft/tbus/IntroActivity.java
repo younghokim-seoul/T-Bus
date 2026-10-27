@@ -1,5 +1,6 @@
 package com.windnsoft.tbus;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
@@ -9,6 +10,8 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.normal.TedPermission;
 import com.windnsoft.tbus.Common.BaseApplication;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.UserEntity;
@@ -19,6 +22,8 @@ import com.windnsoft.tbus.Http.ResponseCodes;
 import com.windnsoft.tbus.Http.ResponseMessageEntity;
 import com.windnsoft.tbus.Operator.UsersOperator;
 import com.windnsoft.tbus.reciever.NetworkStateReceiver;
+
+import java.util.List;
 
 import static com.windnsoft.tbus.Http.ResponseCodes.CodeForbidden;
 import static com.windnsoft.tbus.Http.ResponseCodes.CodeOk;
@@ -35,6 +40,26 @@ public class IntroActivity extends Activity {
         setContentView(R.layout.intro_activity);
 
         BaseApplication.setUiActivity(this);
+
+        TedPermission.create()
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        checkNetworkAndLogin();
+                    }
+
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        Toast.makeText(IntroActivity.this, "권한이 거부되어 앱을 종료합니다.", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                })
+                .setDeniedMessage("전화번호 확인을 위해 전화 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
+                .setPermissions(Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE)
+                .check();
+    }
+
+    private void checkNetworkAndLogin() {
         tel = SharedPreferencesCache.getRealPhoneNumber();
 
 //        showJoinFragment();
@@ -73,7 +98,6 @@ public class IntroActivity extends Activity {
         } else {
             login();
         }
-
     }
 
     void login() {

@@ -96,7 +96,7 @@ public class SharedPreferencesCache {
         String phoneNum;
         try {
             phoneNum = telManager.getLine1Number();
-        } catch (NullPointerException ex) {
+        } catch (SecurityException | NullPointerException ex) {
             return null;
         }
 
