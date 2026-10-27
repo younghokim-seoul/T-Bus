@@ -79,7 +79,7 @@ public class BaseApplication extends Application {
         } else {
             Intent mStartActivity = new Intent(instance, MainActivity.class);
             int mPendingIntentId = 123456;
-            mPendingIntent = PendingIntent.getActivity(instance, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+            mPendingIntent = PendingIntent.getActivity(instance, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             mgr = (AlarmManager) instance.getSystemService(Context.ALARM_SERVICE);
             mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 500, mPendingIntent);
             if (UiActivity != null) {
