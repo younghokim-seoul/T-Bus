@@ -1,5 +1,6 @@
 package com.windnsoft.tbus.General;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,9 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
+
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.normal.TedPermission;
 
 import java.util.List;
 
@@ -116,10 +120,32 @@ public class WsUtils {
         }
     }
 
-    public static void phoneCall(Context context, String number) {
-        Intent intent = new Intent(Intent.ACTION_CALL);
-        intent.setData(Uri.parse("tel:" + number));
+    public static void phoneCall(final Context context, final String number) {
+        TedPermission.create()
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
+                        try {
+                            context.startActivity(intent);
+                        } catch (Exception e) {
+                            dialFallback(context, number);
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        dialFallback(context, number);
+                    }
+                })
+                .setDeniedMessage("전화 걸기 기능을 위해 전화 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
+                .setPermissions(Manifest.permission.CALL_PHONE)
+                .check();
+    }
+
+    private static void dialFallback(Context context, String number) {
         try {
+            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + number));
             context.startActivity(intent);
         } catch (Exception e) {
             Toast.makeText(context, "전화기능을 불러올 수 없습니다.", Toast.LENGTH_SHORT).show();
