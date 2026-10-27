@@ -1,5 +1,6 @@
 package com.windnsoft.tbus;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
@@ -22,6 +23,8 @@ import androidx.annotation.Nullable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.normal.TedPermission;
 import com.windnsoft.tbus.CallSms.CallSmsListFragment;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
@@ -36,6 +39,7 @@ import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
 
 import java.util.Date;
+import java.util.List;
 
 import static com.windnsoft.tbus.Common.GlobalVars.GetAdFullPath;
 
@@ -241,13 +245,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void openCallSmsFragment() {
-        Fragment f = getFragmentManager().findFragmentByTag(CallSmsListFragment.TAG);
-        if (f != null) {
-            getFragmentManager().beginTransaction().remove(f).commit();
-        }
+        TedPermission.create()
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        Fragment f = getFragmentManager().findFragmentByTag(CallSmsListFragment.TAG);
+                        if (f != null) {
+                            getFragmentManager().beginTransaction().remove(f).commit();
+                        }
 
-        CallSmsListFragment fragment = CallSmsListFragment.newInstance();
-        fragment.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
-        fragment.show(getFragmentManager(), CallSmsListFragment.TAG);
+                        CallSmsListFragment fragment = CallSmsListFragment.newInstance();
+                        fragment.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
+                        fragment.show(getFragmentManager(), CallSmsListFragment.TAG);
+                    }
+
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        Toast.makeText(MainActivity.this, "연락처 권한이 거부되어 초대 목록을 불러올 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setDeniedMessage("초대할 연락처 목록을 불러오기 위해 주소록 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
+                .setPermissions(Manifest.permission.READ_CONTACTS)
+                .check();
     }
 }

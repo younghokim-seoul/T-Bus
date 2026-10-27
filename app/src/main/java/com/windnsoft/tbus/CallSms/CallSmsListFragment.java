@@ -92,11 +92,15 @@ public class CallSmsListFragment extends DialogFragment {
     }
 
     private void getMemberLists() {
-        PhonebookReader phonebookReader = new PhonebookReader(getActivity());
-        phonebookReader.needMobilePhone();
-        phonebookReader.flatNumber();
-        memberList = phonebookReader.getMemberList();
-        Collections.sort(memberList);
+        try {
+            PhonebookReader phonebookReader = new PhonebookReader(getActivity());
+            phonebookReader.needMobilePhone();
+            phonebookReader.flatNumber();
+            memberList = phonebookReader.getMemberList();
+            Collections.sort(memberList);
+        } catch (SecurityException e) {
+            memberList = new ArrayList<>();
+        }
     }
 
     private void setListAdapter(List<PhonebookReader.Member> list) {
