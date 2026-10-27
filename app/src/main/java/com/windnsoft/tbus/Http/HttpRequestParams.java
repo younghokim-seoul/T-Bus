@@ -57,7 +57,7 @@ public class HttpRequestParams {
     public HttpRequestParams buildUrl(String protocol, String domain, String path) {
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(protocol);
-        builder.authority(domain);
+        builder.encodedAuthority(domain);
         builder.appendEncodedPath(path);
         url = builder.build();
 
@@ -67,7 +67,7 @@ public class HttpRequestParams {
     public static Uri buildUri(String protocol, String domain, String path) {
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(protocol);
-        builder.authority(domain);
+        builder.encodedAuthority(domain);
         builder.appendEncodedPath(path);
         return builder.build();
     }
