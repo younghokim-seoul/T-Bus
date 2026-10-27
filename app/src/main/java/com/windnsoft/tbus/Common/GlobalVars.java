@@ -8,14 +8,14 @@ public class GlobalVars {
     public final static int FalseOff = 0;
 
     public final static String Protocol = "http";
-    public final static String Domain = "1.234.63.224";
+    public final static String Domain = "15.164.102.251:8080";
 
     public final static int SocketChatPort = 9056;
     public final static int SocketRecievePort = 9076;
     public final static int SocketTalkPort = 9061;
 
 
-    final static String PathRoot = "TBusWebapp";
+    final static String PathRoot = "TBusWebapp2";
     public final static String PathUserLoginUrl = PathRoot+"/servlet/users/login";
     public final static String PathUserJoinUrl = PathRoot+"/servlet/users/join";
     public final static String PathUserJoinBusUrl = PathRoot+"/servlet/users/joinBus";
