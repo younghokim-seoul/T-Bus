@@ -40,11 +40,14 @@ import com.windnsoft.tbus.Fragment.PrivacyPolicyFragment;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
+import com.windnsoft.tbus.feature.FamousCompanyActivity;
 
 import java.util.Date;
 import java.util.List;
 
 import static com.windnsoft.tbus.Common.GlobalVars.GetAdFullPath;
+
+import timber.log.Timber;
 
 public class MainActivity extends Activity implements View.OnClickListener {
     static BoardIDs.BoardEntity BoardID;
@@ -60,6 +63,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
             bid = args.getInt("bid");
         }
         BoardID = BoardIDs.BoardMap.get(bid);
+
+        Timber.d("bid : %d, BoardID.id : %d", bid, BoardID.id);
 
         if (bid == BoardIDs.Estimate) {
             setContentView(R.layout.bus_estimate_activity);
@@ -94,6 +99,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.boardTractionTab).setOnClickListener(this);
         findViewById(R.id.boardWriteBtn).setOnClickListener(this);
         findViewById(R.id.boardInviteBtn).setOnClickListener(this);
+        findViewById(R.id.boardQrBtn).setOnClickListener(this);
+        findViewById(R.id.boardFamousCoBtn).setOnClickListener(this);
         findViewById(R.id.topCloseBtn).setOnClickListener(this);
         findViewById(R.id.bottomNewsBtn).setOnClickListener(this);
         findViewById(R.id.bottomCompanyBtn).setOnClickListener(this);
@@ -161,6 +168,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.boardInviteBtn:
                 openCallSmsFragment();
+                break;
+            case R.id.boardQrBtn:
+                break;
+            case R.id.boardFamousCoBtn:
+                startActivity(new Intent(MainActivity.this, FamousCompanyActivity.class));
                 break;
             case R.id.topMenuBtn:
                 if (drawerLayout != null) {

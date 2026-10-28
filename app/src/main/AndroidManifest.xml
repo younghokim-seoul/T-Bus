@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
@@ -30,7 +32,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBABkN_vSOv9I8je8BhsER2a-v-ecXojG4" />
+            android:value="@string/google_maps_api_key" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -74,6 +76,11 @@
         </activity>
         <activity
             android:name=".InfoListActivity"
+            android:exported="false"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".feature.FamousCompanyActivity"
             android:exported="false"
             android:screenOrientation="portrait">
         </activity>
