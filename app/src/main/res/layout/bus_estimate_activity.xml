@@ -172,6 +172,37 @@
                     android:orientation="horizontal"
                     android:padding="5dp">
 
+                    <TextView
+                        android:id="@+id/boardFamousCoBtn"
+                        android:layout_width="53dp"
+                        android:layout_height="53dp"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginRight="58dp"
+                        android:layout_marginBottom="5dp"
+                        android:background="@drawable/circle_yellow_btn"
+                        android:clickable="true"
+                        android:gravity="center"
+                        android:lineSpacingExtra="-2dp"
+                        android:text="소문난\n업소"
+                        android:textColor="@color/White"
+                        android:textSize="12sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/boardQrBtn"
+                        android:layout_width="53dp"
+                        android:layout_height="53dp"
+                        android:layout_margin="5dp"
+                        android:background="@drawable/circle_red_btn"
+                        android:clickable="true"
+                        android:gravity="center"
+                        android:lineSpacingExtra="-2dp"
+                        android:text="QR\n코드"
+                        android:textColor="@color/White"
+                        android:textSize="12sp"
+                        android:textStyle="bold"/>
+
                     <ImageView
                         android:id="@+id/boardInviteBtn"
                         android:layout_width="wrap_content"
