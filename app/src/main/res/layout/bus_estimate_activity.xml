@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.windnsoft.tbus.MainActivity">
+
+<RelativeLayout
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/AliceBlue"
-
-    tools:context="com.windnsoft.tbus.MainActivity">
+    android:background="@color/AliceBlue">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,6 +29,16 @@
             android:orientation="horizontal">
 
             <ImageView
+                android:id="@+id/topMenuBtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="1"
+                android:padding="1dp"
+                android:src="@drawable/hamburger_black"
+                />
+
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_margin="5dip"
@@ -35,7 +49,7 @@
                 android:id="@+id/textView8"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="9"
+                android:layout_weight="8"
                 android:gravity="center_vertical"
                 android:text="소식"
                 android:textAppearance="?android:attr/textAppearanceMedium"
@@ -230,3 +244,75 @@
     </LinearLayout>
 
 </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/drawer_menu"
+        android:layout_width="260dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/White"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/BlueLight"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginRight="10dp"
+                android:src="@drawable/ic_launcher_mdpi" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/White"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/drawerProfileEditBtn"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="프로필 수정"
+            android:textColor="@color/Black"
+            android:textSize="16sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/listLine" />
+
+        <TextView
+            android:id="@+id/drawerPrivacyBtn"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="개인정보 보호방침 및 약관"
+            android:textColor="@color/Black"
+            android:textSize="16sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/listLine" />
+
+    </LinearLayout>
+
+</androidx.drawerlayout.widget.DrawerLayout>

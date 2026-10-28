@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -34,6 +36,7 @@ import com.windnsoft.tbus.Fragment.BoardListView;
 import com.windnsoft.tbus.Fragment.BoardWriteFragment;
 import com.windnsoft.tbus.Fragment.BusEstimateListView;
 import com.windnsoft.tbus.Fragment.BusEstimateWriteFragment;
+import com.windnsoft.tbus.Fragment.PrivacyPolicyFragment;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
@@ -46,6 +49,7 @@ import static com.windnsoft.tbus.Common.GlobalVars.GetAdFullPath;
 public class MainActivity extends Activity implements View.OnClickListener {
     static BoardIDs.BoardEntity BoardID;
     BoardListView boardListView;
+    DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +68,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
             setContentView(R.layout.board_activity);
         }
 
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawerLayout != null) {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                }
+
+                @Override
+                public void onDrawerClosed(View drawerView) {
+                    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                }
+            });
+        }
+
+        findViewById(R.id.topMenuBtn).setOnClickListener(this);
+        findViewById(R.id.drawerProfileEditBtn).setOnClickListener(this);
+        findViewById(R.id.drawerPrivacyBtn).setOnClickListener(this);
         findViewById(R.id.boardBusTab).setOnClickListener(this);
         findViewById(R.id.boardEstimateTab).setOnClickListener(this);
         findViewById(R.id.boardFreeTab).setOnClickListener(this);
@@ -138,6 +161,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.boardInviteBtn:
                 openCallSmsFragment();
+                break;
+            case R.id.topMenuBtn:
+                if (drawerLayout != null) {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                }
+                break;
+            case R.id.drawerProfileEditBtn:
+                if (drawerLayout != null) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                }
+                openProfileEdit();
+                break;
+            case R.id.drawerPrivacyBtn:
+                if (drawerLayout != null) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                }
+                openPrivacyPolicy();
                 break;
             case R.id.topCloseBtn:
                 finish();
@@ -267,5 +307,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 .setDeniedMessage("초대할 연락처 목록을 불러오기 위해 주소록 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
                 .setPermissions(Manifest.permission.READ_CONTACTS)
                 .check();
+    }
+
+    private void openProfileEdit() {
+        // TODO: 프로필 수정 화면 연동
+    }
+
+    private void openPrivacyPolicy() {
+        PrivacyPolicyFragment dialog = new PrivacyPolicyFragment();
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("one button", true);
+        dialog.setArguments(bundle);
+        dialog.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
+        dialog.show(getFragmentManager(), PrivacyPolicyFragment.TAG);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return;
+        }
+        super.onBackPressed();
     }
 }
