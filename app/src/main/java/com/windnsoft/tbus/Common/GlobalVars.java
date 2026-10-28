@@ -8,7 +8,7 @@ public class GlobalVars {
     public final static int FalseOff = 0;
 
     public final static String Protocol = "http";
-    public final static String Domain = "15.164.102.251:8080";
+    public final static String Domain = "3.37.185.61:8080";
 
     public final static int SocketChatPort = 9056;
     public final static int SocketRecievePort = 9076;
