@@ -29,6 +29,8 @@ import static com.windnsoft.tbus.Http.ResponseCodes.CodeForbidden;
 import static com.windnsoft.tbus.Http.ResponseCodes.CodeOk;
 import static com.windnsoft.tbus.Http.ResponseCodes.CodeSelectNone;
 
+import timber.log.Timber;
+
 public class IntroActivity extends Activity {
     String tel;
     final int rEXTERNAL_STORAGE = 1;
@@ -104,10 +106,13 @@ public class IntroActivity extends Activity {
         UserEntity user = new UserEntity();
         user.tel = tel;
 
+        Timber.d("login tel : %s", tel);
+
         UsersOperator.login(user, new HttpRequestAsync.OnCompleteListener() {
             @Override
             public void onSuccess(String result) {
 
+                Timber.d("login result : %s", result);
                 if (result == null || result.equals("")) {
                     onError(ResponseCodes.CodeUnknownException, result);
                     return;
@@ -123,13 +128,6 @@ public class IntroActivity extends Activity {
                 AlertDialog.Builder alert;
                 switch (res.code) {
                     case CodeOk:
-//                        CheckBox autoLoginCb = (CheckBox) getView().findViewById(R.id.loginAutoLoginCb);
-//                        if(autoLoginCb.isChecked()){
-//                            SharedPreferencesCache.setData(SharedPreferencesCache.KeyAutoLogin,SharedPreferencesCache.ValueTrue);
-//                        } else {
-//                            SharedPreferencesCache.setData(SharedPreferencesCache.KeyAutoLogin,SharedPreferencesCache.ValueFalse);
-//                        }
-
                         UserEntity resultUser = gson.fromJson(res.msg, UserEntity.class);
                         if (resultUser == null || resultUser.id == 0) {
                             onError(ResponseCodes.CodeInsertionExist, result);

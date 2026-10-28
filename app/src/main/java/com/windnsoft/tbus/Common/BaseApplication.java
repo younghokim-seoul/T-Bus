@@ -9,8 +9,11 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 
+import com.windnsoft.tbus.BuildConfig;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.MainActivity;
+
+import timber.log.Timber;
 
 
 /**
@@ -41,6 +44,9 @@ public class BaseApplication extends Application {
 
         if (instance == null) instance = this;
         WsLog.init(this);
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new Timber.DebugTree());
+        }
     }
 
     public static Application getApplication() {
