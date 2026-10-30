@@ -85,7 +85,7 @@
     <string name="chpw_title">비공개 방</string>
     <string name="chpw_password">비밀 번호를 입력하세요.</string>
     <string name="btn_agree">동의</string>
-    <string name="ppTitle">개인정보 동의서</string>
+    <string name="ppTitle">약관동의 및 개인정보 처리 방침</string>
     <string name="txtNeededUpdate">최신 버전으로 업데이트해주세요.</string>
     <string name="txtUpdate">업데이트</string>
     <string name="pref_ptt_button">PTT 버튼 타입  토글</string>

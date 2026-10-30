@@ -5,11 +5,14 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -17,7 +20,8 @@ import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.R;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 
 public class PrivacyPolicyFragment extends DialogFragment implements View.OnClickListener {
@@ -27,6 +31,7 @@ public class PrivacyPolicyFragment extends DialogFragment implements View.OnClic
 
     TextView tvPrivacyPolicyAgreement;
     Button btnAgree, btnCancel;
+    boolean readOnly;
 
 
     public PrivacyPolicyFragment() {
@@ -42,15 +47,10 @@ public class PrivacyPolicyFragment extends DialogFragment implements View.OnClic
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_privacy_policy, container, false);
 
-        if (getArguments() != null) {
-            boolean oneButton = getArguments().getBoolean("one button");
-            if (oneButton) {
-                view.findViewById(R.id.agreeCancelBt).setVisibility(View.GONE);
-                ((TextView) view.findViewById(R.id.agreeAgreeBt)).setText(getString(R.string.btn_ok));
-            }
-        }
-
         UiInit(view);
+        readOnly = getArguments() != null && getArguments().getBoolean("one button");
+        btnCancel.setVisibility(readOnly ? View.GONE : View.VISIBLE);
+        btnAgree.setText(readOnly ? R.string.btn_ok : R.string.btn_agree);
         UiListener();
 
         return view;
@@ -60,8 +60,17 @@ public class PrivacyPolicyFragment extends DialogFragment implements View.OnClic
     public void onStart() {
         super.onStart();
         Dialog dialog = getDialog();
-        if (dialog != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        if (dialog != null && dialog.getWindow() != null) {
+            Window window = dialog.getWindow();
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setGravity(Gravity.CENTER);
+
+            Rect availableBounds = new Rect();
+            getActivity().getWindow().getDecorView().getWindowVisibleDisplayFrame(availableBounds);
+            float density = getResources().getDisplayMetrics().density;
+            int width = Math.min(Math.round(availableBounds.width() * 0.9f), Math.round(600 * density));
+            int height = Math.min(Math.round(availableBounds.height() * 0.85f), Math.round(720 * density));
+            window.setLayout(width, height);
         }
     }
 
@@ -83,17 +92,22 @@ public class PrivacyPolicyFragment extends DialogFragment implements View.OnClic
     }
 
     void InitData(Context context) {
-        try {
-            InputStream is = context.getAssets().open("personal_information_agreement.txt");
-
-            int size = is.available();
-
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-
-            String text = new String(buffer);
-
+        try (InputStreamReader reader = new InputStreamReader(
+                context.getAssets().open("personal_information_agreement.txt"), StandardCharsets.UTF_8)) {
+            StringBuilder content = new StringBuilder();
+            char[] buffer = new char[4096];
+            int count;
+            while ((count = reader.read(buffer)) != -1) {
+                content.append(buffer, 0, count);
+            }
+            String text = content.toString();
+            if (text.startsWith("\uFEFF")) {
+                text = text.substring(1);
+            }
+            String title = getString(R.string.ppTitle);
+            if (text.startsWith(title)) {
+                text = text.substring(title.length()).trim();
+            }
             tvPrivacyPolicyAgreement.setText(text);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -104,10 +118,14 @@ public class PrivacyPolicyFragment extends DialogFragment implements View.OnClic
     @Override
     public void onClick(View v) {
         if (v.getId() == btnCancel.getId()) {
-            SharedPreferencesCache.setData(SharedPreferencesCache.KeyUserAgreement, "");
+            if (!readOnly) {
+                SharedPreferencesCache.setData(SharedPreferencesCache.KeyUserAgreement, "");
+            }
             dismiss();
         } else if (v.getId() == btnAgree.getId()) {
-            SharedPreferencesCache.setData(SharedPreferencesCache.KeyUserAgreement, "yes");
+            if (!readOnly) {
+                SharedPreferencesCache.setData(SharedPreferencesCache.KeyUserAgreement, "yes");
+            }
             dismiss();
         }
     }
