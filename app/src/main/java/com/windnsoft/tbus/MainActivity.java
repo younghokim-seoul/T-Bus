@@ -25,6 +25,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.normal.TedPermission;
 import com.windnsoft.tbus.CallSms.CallSmsListFragment;
@@ -41,8 +43,12 @@ import com.windnsoft.tbus.Fragment.ProfileEditDialogFragment;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
+import com.windnsoft.tbus.Http.HttpRequestAsync;
+import com.windnsoft.tbus.Operator.BoardOperator;
 import com.windnsoft.tbus.feature.FamousCompanyActivity;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -171,6 +177,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 openCallSmsFragment();
                 break;
             case R.id.boardQrBtn:
+                openQrScanner();
                 break;
             case R.id.boardFamousCoBtn:
                 startActivity(new Intent(MainActivity.this, FamousCompanyActivity.class));
@@ -314,6 +321,77 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 .setDeniedMessage("초대할 연락처 목록을 불러오기 위해 주소록 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
                 .setPermissions(Manifest.permission.READ_CONTACTS)
                 .check();
+    }
+
+    private void openQrScanner() {
+        TedPermission.create()
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
+                        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
+                        integrator.setPrompt("QR 코드를 스캔해주세요.");
+                        integrator.setBeepEnabled(true);
+                        integrator.setBarcodeImageEnabled(false);
+                        integrator.setOrientationLocked(false);
+                        integrator.initiateScan();
+                    }
+
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        Toast.makeText(MainActivity.this, "카메라 권한이 거부되어 QR 스캔을 실행할 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setDeniedMessage("QR 코드 스캔을 위해 카메라 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
+                .setPermissions(Manifest.permission.CAMERA)
+                .check();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null) {
+            String qrContent = result.getContents();
+            if (qrContent != null && !qrContent.trim().isEmpty()) {
+                uploadQrContentToMainBoard(qrContent.trim());
+            }
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void uploadQrContentToMainBoard(final String qrContent) {
+        BoardOperator.upload(
+                MainActivity.this,
+                BoardIDs.Free,
+                qrContent,
+                new ArrayList<File>(),
+                new HttpRequestAsync.OnCompleteListener() {
+                    @Override
+                    public void onSuccess(String result) {
+                        Toast.makeText(MainActivity.this, "등록되었습니다.", Toast.LENGTH_SHORT).show();
+                        navigateToMainBoard();
+                    }
+
+                    @Override
+                    public void onFail(String result) {
+                        navigateToMainBoard();
+                    }
+
+                    @Override
+                    public void onError(int code, String result) {
+                        navigateToMainBoard();
+                    }
+                }
+        );
+    }
+
+    private void navigateToMainBoard() {
+        if (BoardID != null && BoardID.id == BoardIDs.Free) {
+            loadList(BoardIDs.Free);
+        } else {
+            intentBoard(BoardIDs.Free);
+        }
     }
 
     private void openProfileEdit() {
