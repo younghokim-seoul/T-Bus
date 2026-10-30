@@ -37,6 +37,7 @@ import com.windnsoft.tbus.Fragment.BoardWriteFragment;
 import com.windnsoft.tbus.Fragment.BusEstimateListView;
 import com.windnsoft.tbus.Fragment.BusEstimateWriteFragment;
 import com.windnsoft.tbus.Fragment.PrivacyPolicyFragment;
+import com.windnsoft.tbus.Fragment.ProfileEditDialogFragment;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
@@ -180,15 +181,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }
                 break;
             case R.id.drawerProfileEditBtn:
-                if (drawerLayout != null) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                }
                 openProfileEdit();
                 break;
             case R.id.drawerPrivacyBtn:
-                if (drawerLayout != null) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                }
                 openPrivacyPolicy();
                 break;
             case R.id.topCloseBtn:
@@ -322,7 +317,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void openProfileEdit() {
-        // TODO: 프로필 수정 화면 연동
+        ProfileEditDialogFragment dialog = ProfileEditDialogFragment.newInstance();
+        dialog.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
+        dialog.show(getFragmentManager(), ProfileEditDialogFragment.TAG);
     }
 
     private void openPrivacyPolicy() {
