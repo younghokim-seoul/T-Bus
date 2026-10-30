@@ -13,19 +13,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,14 +25,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -55,6 +44,11 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.windnsoft.tbus.R
+import com.windnsoft.tbus.designsystem.component.TBusIconButton
+import com.windnsoft.tbus.designsystem.component.TBusScaffold
+import com.windnsoft.tbus.designsystem.component.TBusSurface
+import com.windnsoft.tbus.designsystem.component.TBusTopAppBar
+import com.windnsoft.tbus.designsystem.theme.TBusTheme
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -63,17 +57,16 @@ class FamousCompanyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    FamousCompanyScreen(
-                        onCloseClick = { finish() }
-                    )
-                }
+            TBusTheme {
+                FamousCompanyScreen(
+                    onCloseClick = { finish() }
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FamousCompanyScreen(
     onCloseClick: () -> Unit
@@ -133,49 +126,48 @@ fun FamousCompanyScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // 상단 헤더
-        Row(
+    TBusScaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TBusTopAppBar(
+                title = "소문난 업소",
+                navigationIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_mdpi),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(
+                                start = TBusTheme.spacing.lg,
+                                end = TBusTheme.spacing.sm,
+                            )
+                            .size(36.dp),
+                    )
+                },
+                actions = {
+                    TBusIconButton(onClick = onCloseClick) {
+                        Image(
+                            painter = painterResource(id = R.drawable.xbutton_black),
+                            contentDescription = stringResource(R.string.btn_close),
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        TBusSurface(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .background(Color(0xFF3F51B5))
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_mdpi),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(36.dp)
-                    .padding(4.dp)
-            )
-
-            Text(
-                text = "소문난 업소",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 4.dp)
-            )
-
-            Image(
-                painter = painterResource(id = R.drawable.xbutton_black),
-                contentDescription = "닫기",
-                modifier = Modifier
-                    .size(34.dp)
-                    .clickable { onCloseClick() }
-                    .padding(2.dp)
-            )
-        }
-
-        // Google Compose Map 영역
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+                .padding(
+                    start = TBusTheme.spacing.lg,
+                    top = TBusTheme.spacing.sm,
+                    end = TBusTheme.spacing.lg,
+                    bottom = TBusTheme.spacing.lg,
+                ),
+            shape = TBusTheme.shapes.cardLarge,
+            color = TBusTheme.colors.surface,
         ) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
