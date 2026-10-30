@@ -6,6 +6,7 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 import android.telephony.TelephonyManager;
 
+import com.google.gson.Gson;
 import com.windnsoft.tbus.Entities.ChannelsEntity;
 import com.windnsoft.tbus.Entities.PreferenceEntity;
 import com.windnsoft.tbus.Entities.UserEntity;
@@ -26,6 +27,7 @@ public class SharedPreferencesCache {
     private final static String KeyUserNickname = "UserNickname";
     private final static String KeyUserPhone = "UserPhone";
     private final static String KeyUserPassword = "UserPassword";
+    private final static String KeyUserEntityJson = "UserEntityJson";
     public final static String KeyUserAgreement = "UserAgreement";
     private final static String KeyUserPicture = "UserPicture";
     private final static String KeyIfKey = "IfKey";
@@ -116,12 +118,23 @@ public class SharedPreferencesCache {
         Context context = BaseApplication.getApplication().getApplicationContext();
 
         SharedPreferences prefs = context.getSharedPreferences(KeyUserInfo, context.MODE_PRIVATE);
-        user.id = prefs.getInt(KeyUserIndex, 0);
+        String userJson = prefs.getString(KeyUserEntityJson, null);
+        if (userJson != null && !userJson.isEmpty()) {
+            try {
+                UserEntity parsed = new Gson().fromJson(userJson, UserEntity.class);
+                if (parsed != null) {
+                    user = parsed;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        user.id = prefs.getInt(KeyUserIndex, user.id);
         String phoneNum = prefs.getString(KeyUserPhone, null);
         if (phoneNum == null || phoneNum.equals("")) phoneNum = getRealPhoneNumber();
         user.tel = phoneNum;
         user.name = prefs.getString(KeyUserName, null);
         user.type = prefs.getInt(KeyUserType, UserTypes.Normal);
+        user.password = prefs.getString(KeyUserPassword, "");
 
         return user;
     }
@@ -139,6 +152,9 @@ public class SharedPreferencesCache {
         if (user.name != null && !user.name.equals(""))
             editor.putString(KeyUserName, user.name);
         editor.putInt(KeyUserType, user.type);
+        if (user.password != null)
+            editor.putString(KeyUserPassword, user.password);
+        editor.putString(KeyUserEntityJson, new Gson().toJson(user));
 //        if (user.user_picture != null && !user.user_picture.equals(""))
 //            editor.putString(KeyUserPicture, user.user_picture);
         editor.commit();
