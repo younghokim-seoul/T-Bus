@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -11,11 +12,14 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -49,13 +53,22 @@ import com.windnsoft.tbus.designsystem.component.TBusScaffold
 import com.windnsoft.tbus.designsystem.component.TBusSurface
 import com.windnsoft.tbus.designsystem.component.TBusTopAppBar
 import com.windnsoft.tbus.designsystem.theme.TBusTheme
+import com.windnsoft.tbus.utils.EdgeToEdgeConfig
+import com.windnsoft.tbus.utils.EdgeToEdgeDefaults
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class FamousCompanyActivity : ComponentActivity() {
 
+    private val edgeToEdgeConfig: EdgeToEdgeConfig
+        get() = when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+            Configuration.UI_MODE_NIGHT_YES -> EdgeToEdgeDefaults.darkTransparent()
+            else -> EdgeToEdgeDefaults.lightTransparent()
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applyEdgeToEdge(edgeToEdgeConfig)
         setContent {
             TBusTheme {
                 FamousCompanyScreen(
@@ -63,6 +76,13 @@ class FamousCompanyActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    private fun applyEdgeToEdge(config: EdgeToEdgeConfig) {
+        enableEdgeToEdge(
+            statusBarStyle = config.statusBarStyle,
+            navigationBarStyle = config.navigationBarStyle,
+        )
     }
 }
 
@@ -128,6 +148,7 @@ fun FamousCompanyScreen(
 
     TBusScaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             TBusTopAppBar(
                 title = "소문난 업소",
