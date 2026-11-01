@@ -98,7 +98,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/prg_border_blue"
                     android:gravity="center"
-                    android:text="자유게시판"
+                    android:text="게시판"
                     android:textAppearance="?android:attr/textAppearanceSmall"
 
                     android:textColor="@color/Black"/>
