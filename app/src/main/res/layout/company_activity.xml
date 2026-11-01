@@ -218,7 +218,7 @@
                             android:layout_gravity="center"
                             android:background="@drawable/btn_orange"
                             android:padding="13dp"
-                            android:text="대리운전"
+                            android:text="여행사/온천"
 
                             android:textAppearance="@style/TextAppearance.AppCompat.Large"
                             android:textColor="@color/White"/>
