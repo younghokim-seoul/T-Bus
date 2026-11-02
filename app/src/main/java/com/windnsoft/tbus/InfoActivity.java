@@ -20,6 +20,7 @@ public class InfoActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.bottomNewsBtn).setOnClickListener(this);
         findViewById(R.id.bottomCompanyBtn).setOnClickListener(this);
         findViewById(R.id.bottomInfoBtn).setOnClickListener(this);
+        findViewById(R.id.bottomMemberBtn).setOnClickListener(this);
         findViewById(R.id.bottomTalkieBtn).setOnClickListener(this);
 
         findViewById(R.id.infDealBtn).setOnClickListener(this);
@@ -71,6 +72,10 @@ public class InfoActivity extends Activity implements View.OnClickListener {
                 finish();
                 break;
             case R.id.bottomInfoBtn:
+                break;
+            case R.id.bottomMemberBtn:
+                startActivity(new Intent(InfoActivity.this, MemberActivity.class));
+                finish();
                 break;
             case R.id.bottomTalkieBtn:
                 WsUtils.runExternalAppOrGooglePlay(this, GlobalVars.WalieTaliePackageName);

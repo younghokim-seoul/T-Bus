@@ -70,6 +70,7 @@ public class InfoListActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.bottomNewsBtn).setOnClickListener(this);
         findViewById(R.id.bottomCompanyBtn).setOnClickListener(this);
         findViewById(R.id.bottomInfoBtn).setOnClickListener(this);
+        findViewById(R.id.bottomMemberBtn).setOnClickListener(this);
         findViewById(R.id.bottomTalkieBtn).setOnClickListener(this);
         findViewById(R.id.boardWriteBtn).setOnClickListener(this);
         findViewById(R.id.boardInviteBtn).setOnClickListener(this);
@@ -107,6 +108,10 @@ public class InfoListActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.bottomInfoBtn:
                 startActivity(new Intent(InfoListActivity.this, InfoActivity.class));
+                finish();
+                break;
+            case R.id.bottomMemberBtn:
+                startActivity(new Intent(InfoListActivity.this, MemberActivity.class));
                 finish();
                 break;
             case R.id.bottomTalkieBtn:

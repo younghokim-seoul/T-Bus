@@ -46,6 +46,7 @@ public class CoListActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.bottomNewsBtn).setOnClickListener(this);
         findViewById(R.id.bottomCompanyBtn).setOnClickListener(this);
         findViewById(R.id.bottomInfoBtn).setOnClickListener(this);
+        findViewById(R.id.bottomMemberBtn).setOnClickListener(this);
         findViewById(R.id.bottomTalkieBtn).setOnClickListener(this);
 
         Bundle args = getIntent().getExtras();
@@ -157,6 +158,10 @@ public class CoListActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.bottomInfoBtn:
                 startActivity(new Intent(CoListActivity.this, InfoActivity.class));
+                finish();
+                break;
+            case R.id.bottomMemberBtn:
+                startActivity(new Intent(CoListActivity.this, MemberActivity.class));
                 finish();
                 break;
             case R.id.bottomTalkieBtn:

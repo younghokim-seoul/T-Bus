@@ -112,6 +112,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.bottomNewsBtn).setOnClickListener(this);
         findViewById(R.id.bottomCompanyBtn).setOnClickListener(this);
         findViewById(R.id.bottomInfoBtn).setOnClickListener(this);
+        findViewById(R.id.bottomMemberBtn).setOnClickListener(this);
         findViewById(R.id.bottomTalkieBtn).setOnClickListener(this);
 
 
@@ -205,6 +206,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.bottomInfoBtn:
                 startActivity(new Intent(MainActivity.this, InfoActivity.class));
+                finish();
+                break;
+            case R.id.bottomMemberBtn:
+                startActivity(new Intent(MainActivity.this, MemberActivity.class));
                 finish();
                 break;
             case R.id.bottomTalkieBtn:
