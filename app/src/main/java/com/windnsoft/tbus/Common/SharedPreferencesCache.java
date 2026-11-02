@@ -28,6 +28,7 @@ public class SharedPreferencesCache {
     private final static String KeyUserPhone = "UserPhone";
     private final static String KeyUserPassword = "UserPassword";
     private final static String KeyUserEntityJson = "UserEntityJson";
+    private final static String KeyOverrideRealPhone = "OverrideRealPhone";
     public final static String KeyUserAgreement = "UserAgreement";
     private final static String KeyUserPicture = "UserPicture";
     private final static String KeyIfKey = "IfKey";
@@ -94,6 +95,12 @@ public class SharedPreferencesCache {
 
     public static String getRealPhoneNumber() {
         Context context = BaseApplication.getApplication().getApplicationContext();
+        SharedPreferences prefs = context.getSharedPreferences(KeyUserInfo, context.MODE_PRIVATE);
+        String overridePhone = prefs.getString(KeyOverrideRealPhone, null);
+        if (overridePhone != null && !overridePhone.isEmpty()) {
+            return overridePhone;
+        }
+
         TelephonyManager telManager = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
         String phoneNum;
         try {
@@ -132,18 +139,39 @@ public class SharedPreferencesCache {
         String phoneNum = prefs.getString(KeyUserPhone, null);
         if (phoneNum == null || phoneNum.equals("")) phoneNum = getRealPhoneNumber();
         user.tel = phoneNum;
-        user.name = prefs.getString(KeyUserName, null);
-        user.type = prefs.getInt(KeyUserType, UserTypes.Normal);
-        user.password = prefs.getString(KeyUserPassword, "");
+        user.name = prefs.getString(KeyUserName, user.name);
+        user.type = prefs.getInt(KeyUserType, user.type > 0 ? user.type : UserTypes.Normal);
+        user.password = prefs.getString(KeyUserPassword, user.password != null ? user.password : "");
 
         return user;
     }
 
     public static void setCurrentUser(UserEntity user) {
-        SharedPreferencesCache.user = user;
         Context context = BaseApplication.getApplication().getApplicationContext();
-
         SharedPreferences prefs = context.getSharedPreferences(KeyUserInfo, context.MODE_PRIVATE);
+
+        // Preserve locally edited detail fields if login response only contains basic fields
+        String existingJson = prefs.getString(KeyUserEntityJson, null);
+        if (existingJson != null && !existingJson.isEmpty()) {
+            try {
+                UserEntity existing = new Gson().fromJson(existingJson, UserEntity.class);
+                if (existing != null && (existing.id == user.id || user.id <= 0)) {
+                    if (user.garage == null) user.garage = existing.garage;
+                    if (user.ride == null) user.ride = existing.ride;
+                    if (user.company_name == null) user.company_name = existing.company_name;
+                    if (user.passengers == null) user.passengers = existing.passengers;
+                    if (user.possible_date == null) user.possible_date = existing.possible_date;
+                    if (user.car_number == null) user.car_number = existing.car_number;
+                    if (user.profile == null) user.profile = existing.profile;
+                    if (user.photo == null) user.photo = existing.photo;
+                    if (user.photoList == null) user.photoList = existing.photoList;
+                    if (user.password == null) user.password = existing.password;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        SharedPreferencesCache.user = user;
         SharedPreferences.Editor editor = prefs.edit();
         if (user.id > 0)
             editor.putInt(KeyUserIndex, user.id);
