@@ -81,6 +81,17 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".MemberActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".feature.member.MemberPhotoViewerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".feature.FamousCompanyActivity"
             android:exported="false"
             android:screenOrientation="portrait">
