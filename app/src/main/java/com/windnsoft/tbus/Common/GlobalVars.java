@@ -23,6 +23,11 @@ public class GlobalVars {
     public final static String PathUserInfoUrl = PathRoot+"/servlet/users/getInfo";
     public final static String PathUserListUrl = PathRoot+"/servlet/users/getUserList";
     public final static String PathCoListUrl = PathRoot+"/servlet/users/getCoList";
+    public final static String PathGetLatLngListUrl = PathRoot+"/servlet/users/getLatLngList";
+    public final static String PathUpdateMemberUrl = PathRoot+"/servlet/users/updateMember";
+    public final static String PathUpdateProfilePictureUrl = PathRoot+"/servlet/users/updateProfilePicture";
+    public final static String PathInsertUserPhotoUrl = PathRoot+"/servlet/users/insertUserPhoto";
+    public final static String PathRemoveUserPhotoUrl = PathRoot+"/servlet/users/removeUserPhoto";
 
     public final static String PathUploadUserPicture = PathRoot+"/servlet/users/UploadPicture";
     public final static String PathUploadBoard = PathRoot+"/servlet/board/Upload";
