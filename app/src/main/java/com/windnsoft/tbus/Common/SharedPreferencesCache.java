@@ -28,7 +28,6 @@ public class SharedPreferencesCache {
     private final static String KeyUserPhone = "UserPhone";
     private final static String KeyUserPassword = "UserPassword";
     private final static String KeyUserEntityJson = "UserEntityJson";
-    private final static String KeyOverrideRealPhone = "OverrideRealPhone";
     public final static String KeyUserAgreement = "UserAgreement";
     private final static String KeyUserPicture = "UserPicture";
     private final static String KeyIfKey = "IfKey";
@@ -95,11 +94,6 @@ public class SharedPreferencesCache {
 
     public static String getRealPhoneNumber() {
         Context context = BaseApplication.getApplication().getApplicationContext();
-        SharedPreferences prefs = context.getSharedPreferences(KeyUserInfo, context.MODE_PRIVATE);
-        String overridePhone = prefs.getString(KeyOverrideRealPhone, null);
-        if (overridePhone != null && !overridePhone.isEmpty()) {
-            return overridePhone;
-        }
 
         TelephonyManager telManager = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
         String phoneNum;
@@ -166,6 +160,21 @@ public class SharedPreferencesCache {
                     if (user.photo == null) user.photo = existing.photo;
                     if (user.photoList == null) user.photoList = existing.photoList;
                     if (user.password == null) user.password = existing.password;
+                    if (user.product == null) user.product = existing.product;
+                    if (user.sectors == null) user.sectors = existing.sectors;
+                    if (user.locale == null) user.locale = existing.locale;
+                    if (user.addr == null) user.addr = existing.addr;
+                    if (user.manager_name == null) user.manager_name = existing.manager_name;
+                    if (user.manager_tel == null) user.manager_tel = existing.manager_tel;
+                    if (user.contact == null) user.contact = existing.contact;
+                    if (user.usage == null) user.usage = existing.usage;
+                    if (user.menu == null) user.menu = existing.menu;
+                    if (user.capacity == null) user.capacity = existing.capacity;
+                    if (user.time == null) user.time = existing.time;
+                    if (user.closed == null) user.closed = existing.closed;
+                    if (user.parking == null) user.parking = existing.parking;
+                    if (user.booking == null) user.booking = existing.booking;
+                    if (user.detail == null) user.detail = existing.detail;
                 }
             } catch (Exception ignored) {
             }
@@ -173,12 +182,12 @@ public class SharedPreferencesCache {
 
         SharedPreferencesCache.user = user;
         SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("OverrideRealPhone");
         if (user.id > 0)
             editor.putInt(KeyUserIndex, user.id);
         if (user.tel != null && !user.tel.equals(""))
             editor.putString(KeyUserPhone, user.tel);
-        if (user.name != null && !user.name.equals(""))
-            editor.putString(KeyUserName, user.name);
+        editor.putString(KeyUserName, user.name != null ? user.name : "");
         editor.putInt(KeyUserType, user.type);
         if (user.password != null)
             editor.putString(KeyUserPassword, user.password);

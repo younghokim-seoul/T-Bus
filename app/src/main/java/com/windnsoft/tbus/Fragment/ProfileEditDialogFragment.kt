@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -39,10 +41,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -110,7 +117,13 @@ import com.windnsoft.tbus.designsystem.component.TBusTextVariant
 import com.windnsoft.tbus.designsystem.theme.TBusTheme
 import com.windnsoft.tbus.feature.member.MemberApiService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.min
@@ -165,6 +178,10 @@ class ProfileEditDialogFragment :
                         onConsumeNewlyPickedCards = { newlyPickedBusinessCardPaths.clear() },
                         onRequestPickProfilePhoto = { launchGooglePhotoPickerForProfile() },
                         onRequestPickBusinessCardPhoto = { launchGooglePhotoPickerForBusinessCard() },
+                        onUploadingStateChanged = { uploading ->
+                            isCancelable = !uploading
+                            dialog?.setCanceledOnTouchOutside(!uploading)
+                        },
                         onCancel = { dismiss() },
                         onConfirm = { updatedUser ->
                             SharedPreferencesCache.setCurrentUser(updatedUser)
@@ -315,31 +332,41 @@ private fun ProfileEditDialogContent(
     onConsumeNewlyPickedCards: () -> Unit,
     onRequestPickProfilePhoto: () -> Unit,
     onRequestPickBusinessCardPhoto: () -> Unit,
+    onUploadingStateChanged: (Boolean) -> Unit,
     onCancel: () -> Unit,
     onConfirm: (UserEntity) -> Unit,
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val cachedUser = remember { SharedPreferencesCache.getCurrentUser() }
     val userType = cachedUser.type
 
-    // 일반회원/기본값 상태
-    var userId by remember {
-        mutableStateOf(
-            cachedUser.tel?.takeIf { it.isNotBlank() }
-                ?: cachedUser.name?.takeIf { it.isNotBlank() }
-                ?: if (cachedUser.id > 0) cachedUser.id.toString() else "",
-        )
+    val sectorOptions = remember(context) {
+        context.resources.getStringArray(R.array.sector).toList()
     }
-    var password by remember {
-        mutableStateOf(cachedUser.password.orEmpty())
+    val locale1Options = remember(context) {
+        context.resources.getStringArray(R.array.locale).toList()
     }
-    var showPassword by remember { mutableStateOf(false) }
 
-    // 버스회원(type=2) 전용 상태
+    var isUploading by remember { mutableStateOf(false) }
+    var serverUserSnapshot by remember { mutableStateOf<UserEntity?>(null) }
+    var uploadedLocalProfilePath by remember { mutableStateOf<String?>(null) }
+    val uploadedLocalCardPaths = remember { mutableStateListOf<String>() }
+
+    // 업종 / 지역 선택 팝업 표시 상태
+    var showSectorPopup by remember { mutableStateOf(false) }
+    var showLocale1Popup by remember { mutableStateOf(false) }
+    var showLocale2Popup by remember { mutableStateOf(false) }
+
+    // 공통 및 버스회원(type=2) 상태
     var tel by remember {
         mutableStateOf(
             cachedUser.tel?.takeIf { it.isNotBlank() }
                 ?: SharedPreferencesCache.getRealPhoneNumber().orEmpty(),
         )
+    }
+    var normalUserName by remember {
+        mutableStateOf(cachedUser.name.orEmpty())
     }
     var garage by remember { mutableStateOf(cachedUser.garage.orEmpty()) }
     var ride by remember { mutableStateOf(cachedUser.ride.orEmpty()) }
@@ -350,7 +377,60 @@ private fun ProfileEditDialogContent(
     var driverName by remember { mutableStateOf(cachedUser.name.orEmpty()) }
     var possibleDate by remember { mutableStateOf(cachedUser.possible_date.orEmpty()) }
     var carNumber by remember { mutableStateOf(cachedUser.car_number.orEmpty()) }
+
+    // 업소회원(type=3) 상태
+    val initialLocaleParts = remember {
+        cachedUser.locale.orEmpty().trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+    }
+    val initialLocale1 = initialLocaleParts.getOrNull(0)
+        ?.takeIf { it in locale1Options }
+        ?: locale1Options.firstOrNull().orEmpty()
+    val initialLocale2Options = getSubLocaleOptions(context, locale1Options, initialLocale1)
+    val initialLocale2 = initialLocaleParts.getOrNull(1)
+        ?.takeIf { it in initialLocale2Options }
+        ?: initialLocale2Options.firstOrNull().orEmpty()
+
+    var product by remember { mutableStateOf(cachedUser.product.orEmpty()) }
+    var sectors by remember {
+        mutableStateOf(
+            cachedUser.sectors?.takeIf { it.isNotBlank() }
+                ?: sectorOptions.firstOrNull().orEmpty(),
+        )
+    }
+    var locale1 by remember { mutableStateOf(initialLocale1) }
+    var locale2 by remember { mutableStateOf(initialLocale2) }
+    val locale2Options = remember(context, locale1Options, locale1) {
+        getSubLocaleOptions(context, locale1Options, locale1)
+    }
+    var managerName by remember {
+        mutableStateOf(
+            cachedUser.manager_name?.takeIf { it.isNotBlank() }
+                ?: cachedUser.name.orEmpty(),
+        )
+    }
+    var managerTel by remember { mutableStateOf(cachedUser.manager_tel.orEmpty()) }
+    var contact by remember { mutableStateOf(cachedUser.contact.orEmpty()) }
+    var menu by remember { mutableStateOf(cachedUser.menu.orEmpty()) }
+    var capacity by remember {
+        mutableStateOf(cachedUser.capacity?.takeIf { it > 0 }?.toString().orEmpty())
+    }
+    var businessTime by remember { mutableStateOf(cachedUser.time.orEmpty()) }
+    var closedInfo by remember { mutableStateOf(cachedUser.closed.orEmpty()) }
+    var parkingInfo by remember { mutableStateOf(cachedUser.parking.orEmpty()) }
+    var bookingAvailable by remember { mutableStateOf(cachedUser.booking ?: false) }
+
     var profilePhoto by remember { mutableStateOf(cachedUser.profile.orEmpty()) }
+    var initialServerProfilePhoto by remember {
+        mutableStateOf(cachedUser.profile?.takeIf { !isLocalFilePath(it) }.orEmpty())
+    }
+    val initialServerPhotos = remember {
+        mutableStateListOf<String>().apply {
+            val initialList = (cachedUser.photoList?.takeIf { it.isNotEmpty() }
+                ?: parsePhotoJsonList(cachedUser.photo))
+                .filter { !isLocalFilePath(it) }
+            addAll(initialList)
+        }
+    }
     val businessCardPhotos = remember {
         mutableStateListOf<String>().apply {
             val initialList = cachedUser.photoList?.takeIf { it.isNotEmpty() }
@@ -366,7 +446,7 @@ private fun ProfileEditDialogContent(
         }
     }
 
-    // 구글 이미지 피커에서 선택된 명함 사진 추가 반영
+    // 구글 이미지 피커에서 선택된 명함/업체 사진 추가 반영
     LaunchedEffect(newlyPickedBusinessCardPaths.size) {
         if (newlyPickedBusinessCardPaths.isNotEmpty()) {
             businessCardPhotos.addAll(newlyPickedBusinessCardPaths)
@@ -374,9 +454,9 @@ private fun ProfileEditDialogContent(
         }
     }
 
-    // 버스회원이고 상세 필드가 비어있는 경우 서버에서 초기 상세 정보 조회
+    // 서버에서 최신 회원 상세 정보 조회 및 기준 상태 동기화
     LaunchedEffect(cachedUser.id, userType) {
-        if (userType == UserTypes.Bus && cachedUser.id > 0 && garage.isBlank() && companyName.isBlank()) {
+        if (cachedUser.id > 0) {
             val remoteUser: UserEntity? = withContext(Dispatchers.IO) {
                 runCatching<UserEntity?> {
                     val response = MemberApiService.instance.getUserInfo(cachedUser.id)
@@ -388,31 +468,110 @@ private fun ProfileEditDialogContent(
                 }.getOrNull()
             }
             if (remoteUser != null) {
+                serverUserSnapshot = remoteUser
+                if (!remoteUser.profile.isNullOrBlank()) {
+                    initialServerProfilePhoto = remoteUser.profile
+                }
+                val remotePhotos = (remoteUser.photoList?.takeIf { it.isNotEmpty() }
+                    ?: parsePhotoJsonList(remoteUser.photo))
+                    .filter { !isLocalFilePath(it) }
+                initialServerPhotos.clear()
+                initialServerPhotos.addAll(remotePhotos)
+
                 if (tel.isBlank() && !remoteUser.tel.isNullOrBlank()) tel = remoteUser.tel
-                if (garage.isBlank() && !remoteUser.garage.isNullOrBlank()) garage = remoteUser.garage
-                if (ride.isBlank() && !remoteUser.ride.isNullOrBlank()) ride = remoteUser.ride
-                if (companyName.isBlank() && !remoteUser.company_name.isNullOrBlank()) {
-                    companyName = remoteUser.company_name
+                if (normalUserName.isBlank() && !remoteUser.name.isNullOrBlank()) {
+                    normalUserName = remoteUser.name
                 }
-                if (passengers.isBlank() && (remoteUser.passengers ?: 0) > 0) {
-                    passengers = remoteUser.passengers.toString()
-                }
-                if (driverName.isBlank() && !remoteUser.name.isNullOrBlank()) {
-                    driverName = remoteUser.name
-                }
-                if (possibleDate.isBlank() && !remoteUser.possible_date.isNullOrBlank()) {
-                    possibleDate = remoteUser.possible_date
-                }
-                if (carNumber.isBlank() && !remoteUser.car_number.isNullOrBlank()) {
-                    carNumber = remoteUser.car_number
-                }
-                if (profilePhoto.isBlank() && !remoteUser.profile.isNullOrBlank()) {
-                    profilePhoto = remoteUser.profile
-                }
-                if (businessCardPhotos.isEmpty()) {
-                    val remotePhotos = remoteUser.photoList?.takeIf { it.isNotEmpty() }
-                        ?: parsePhotoJsonList(remoteUser.photo)
-                    businessCardPhotos.addAll(remotePhotos)
+
+                if (userType == UserTypes.Bus) {
+                    if (garage.isBlank() && !remoteUser.garage.isNullOrBlank()) garage = remoteUser.garage
+                    if (ride.isBlank() && !remoteUser.ride.isNullOrBlank()) ride = remoteUser.ride
+                    if (companyName.isBlank() && !remoteUser.company_name.isNullOrBlank()) {
+                        companyName = remoteUser.company_name
+                    }
+                    if (passengers.isBlank() && (remoteUser.passengers ?: 0) > 0) {
+                        passengers = remoteUser.passengers.toString()
+                    }
+                    if (driverName.isBlank() && !remoteUser.name.isNullOrBlank()) {
+                        driverName = remoteUser.name
+                    }
+                    if (possibleDate.isBlank() && !remoteUser.possible_date.isNullOrBlank()) {
+                        possibleDate = remoteUser.possible_date
+                    }
+                    if (carNumber.isBlank() && !remoteUser.car_number.isNullOrBlank()) {
+                        carNumber = remoteUser.car_number
+                    }
+                    if ((profilePhoto.isBlank() || isLocalFilePath(profilePhoto)) &&
+                        pickedProfilePhotoPath.isNullOrBlank() &&
+                        !remoteUser.profile.isNullOrBlank()
+                    ) {
+                        profilePhoto = remoteUser.profile
+                    }
+                    if (businessCardPhotos.isEmpty() || businessCardPhotos.all { isLocalFilePath(it) }) {
+                        val pendingLocal = businessCardPhotos.filter { isLocalFilePath(it) }
+                        businessCardPhotos.clear()
+                        businessCardPhotos.addAll(remotePhotos)
+                        businessCardPhotos.addAll(pendingLocal)
+                    }
+                } else if (userType == UserTypes.Co) {
+                    if (companyName.isBlank() && !remoteUser.company_name.isNullOrBlank()) {
+                        companyName = remoteUser.company_name
+                    }
+                    if (product.isBlank() && !remoteUser.product.isNullOrBlank()) {
+                        product = remoteUser.product
+                    }
+                    if (!remoteUser.sectors.isNullOrBlank()) {
+                        sectors = remoteUser.sectors
+                    }
+                    if (!remoteUser.locale.isNullOrBlank()) {
+                        val parts = remoteUser.locale.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+                        val parsedL1 = parts.getOrNull(0)?.takeIf { it in locale1Options } ?: locale1
+                        val subOptions = getSubLocaleOptions(context, locale1Options, parsedL1)
+                        val parsedL2 = parts.getOrNull(1)?.takeIf { it in subOptions }
+                            ?: subOptions.firstOrNull().orEmpty()
+                        locale1 = parsedL1
+                        locale2 = parsedL2
+                    }
+                    if (managerName.isBlank()) {
+                        managerName = remoteUser.manager_name?.takeIf { it.isNotBlank() }
+                            ?: remoteUser.name.orEmpty()
+                    }
+                    if (managerTel.isBlank() && !remoteUser.manager_tel.isNullOrBlank()) {
+                        managerTel = remoteUser.manager_tel
+                    }
+                    if (contact.isBlank() && !remoteUser.contact.isNullOrBlank()) {
+                        contact = remoteUser.contact
+                    }
+                    if (menu.isBlank() && !remoteUser.menu.isNullOrBlank()) {
+                        menu = remoteUser.menu
+                    }
+                    if (capacity.isBlank() && (remoteUser.capacity ?: 0) > 0) {
+                        capacity = remoteUser.capacity.toString()
+                    }
+                    if (businessTime.isBlank() && !remoteUser.time.isNullOrBlank()) {
+                        businessTime = remoteUser.time
+                    }
+                    if (closedInfo.isBlank() && !remoteUser.closed.isNullOrBlank()) {
+                        closedInfo = remoteUser.closed
+                    }
+                    if (parkingInfo.isBlank() && !remoteUser.parking.isNullOrBlank()) {
+                        parkingInfo = remoteUser.parking
+                    }
+                    if (cachedUser.booking == null && remoteUser.booking != null) {
+                        bookingAvailable = remoteUser.booking
+                    }
+                    if ((profilePhoto.isBlank() || isLocalFilePath(profilePhoto)) &&
+                        pickedProfilePhotoPath.isNullOrBlank() &&
+                        !remoteUser.profile.isNullOrBlank()
+                    ) {
+                        profilePhoto = remoteUser.profile
+                    }
+                    if (businessCardPhotos.isEmpty() || businessCardPhotos.all { isLocalFilePath(it) }) {
+                        val pendingLocal = businessCardPhotos.filter { isLocalFilePath(it) }
+                        businessCardPhotos.clear()
+                        businessCardPhotos.addAll(remotePhotos)
+                        businessCardPhotos.addAll(pendingLocal)
+                    }
                 }
             }
         }
@@ -450,8 +609,8 @@ private fun ProfileEditDialogContent(
             TBusHorizontalDivider()
 
             // 본문 영역 (회원 타입별 UI 분기)
-            if (userType == UserTypes.Bus) {
-                // 버스 회원 (2): LazyColumn으로 입력 필드 + 프로필 사진/설정 + 명함 이미지 리스트 구성
+            if (userType == UserTypes.Bus || userType == UserTypes.Co) {
+                // 버스 회원 (2) & 업소 회원 (3): LazyColumn으로 입력 필드 + 프로필 사진/설정 + 이미지 리스트 구성
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -459,81 +618,225 @@ private fun ProfileEditDialogContent(
                     contentPadding = PaddingValues(TBusTheme.spacing.xl),
                     verticalArrangement = Arrangement.spacedBy(TBusTheme.spacing.lg),
                 ) {
-                    item(key = "bus_text_fields") {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(TBusTheme.spacing.md),
-                        ) {
-                            LabeledProfileTextField(
-                                title = "전화번호",
-                                value = tel,
-                                onValueChange = { tel = it },
-                                enabled = false,
-                                readOnly = true,
-                            )
+                    if (userType == UserTypes.Bus) {
+                        item(key = "bus_text_fields") {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(TBusTheme.spacing.md),
+                            ) {
+                                LabeledProfileTextField(
+                                    title = "전화번호",
+                                    value = tel,
+                                    onValueChange = { tel = it },
+                                    enabled = false,
+                                    readOnly = true,
+                                )
 
-                            LabeledProfileTextField(
-                                title = "차고지역",
-                                value = garage,
-                                onValueChange = { garage = it },
-                                placeholder = "차고지역을 입력하세요",
-                            )
+                                LabeledProfileTextField(
+                                    title = "차고지역",
+                                    value = garage,
+                                    onValueChange = { garage = it },
+                                    placeholder = "차고지역을 입력하세요",
+                                    enabled = !isUploading,
+                                )
 
-                            LabeledProfileTextField(
-                                title = "승차 지역",
-                                value = ride,
-                                onValueChange = { ride = it },
-                                placeholder = "승차 지역을 입력하세요",
-                            )
+                                LabeledProfileTextField(
+                                    title = "승차 지역",
+                                    value = ride,
+                                    onValueChange = { ride = it },
+                                    placeholder = "승차 지역을 입력하세요",
+                                    enabled = !isUploading,
+                                )
 
-                            LabeledProfileTextField(
-                                title = "회사 상호",
-                                value = companyName,
-                                onValueChange = { companyName = it },
-                                placeholder = "회사 상호를 입력하세요",
-                            )
+                                LabeledProfileTextField(
+                                    title = "회사 상호",
+                                    value = companyName,
+                                    onValueChange = { companyName = it },
+                                    placeholder = "회사 상호를 입력하세요",
+                                    enabled = !isUploading,
+                                )
 
-                            LabeledProfileTextField(
-                                title = "승차 인승",
-                                value = passengers,
-                                onValueChange = { input ->
-                                    passengers = input.filter { it.isDigit() }
-                                },
-                                placeholder = "승차 인승을 입력하세요",
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Number,
-                                    imeAction = ImeAction.Next,
-                                ),
-                            )
+                                LabeledProfileTextField(
+                                    title = "승차 인승",
+                                    value = passengers,
+                                    onValueChange = { input ->
+                                        passengers = input.filter { it.isDigit() }
+                                    },
+                                    placeholder = "승차 인승을 입력하세요",
+                                    enabled = !isUploading,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Number,
+                                        imeAction = ImeAction.Next,
+                                    ),
+                                )
 
-                            LabeledProfileTextField(
-                                title = "운전자명",
-                                value = driverName,
-                                onValueChange = { driverName = it },
-                                placeholder = "운전자명을 입력하세요",
-                            )
+                                LabeledProfileTextField(
+                                    title = "운전자명",
+                                    value = driverName,
+                                    onValueChange = { driverName = it },
+                                    placeholder = "운전자명을 입력하세요",
+                                    enabled = !isUploading,
+                                )
 
-                            LabeledProfileTextField(
-                                title = "운행 가능일",
-                                value = possibleDate,
-                                onValueChange = { possibleDate = it },
-                                placeholder = "운행 가능일을 입력하세요",
-                            )
+                                LabeledProfileTextField(
+                                    title = "운행 가능일",
+                                    value = possibleDate,
+                                    onValueChange = { possibleDate = it },
+                                    placeholder = "운행 가능일을 입력하세요",
+                                    enabled = !isUploading,
+                                )
 
-                            LabeledProfileTextField(
-                                title = "차량 번호",
-                                value = carNumber,
-                                onValueChange = { carNumber = it },
-                                placeholder = "차량 번호를 입력하세요",
-                                keyboardOptions = KeyboardOptions(
-                                    imeAction = ImeAction.Done,
-                                ),
-                            )
+                                LabeledProfileTextField(
+                                    title = "차량 번호",
+                                    value = carNumber,
+                                    onValueChange = { carNumber = it },
+                                    placeholder = "차량 번호를 입력하세요",
+                                    enabled = !isUploading,
+                                    keyboardOptions = KeyboardOptions(
+                                        imeAction = ImeAction.Done,
+                                    ),
+                                )
+                            }
+                        }
+                    } else {
+                        item(key = "co_text_fields") {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(TBusTheme.spacing.md),
+                            ) {
+                                LabeledProfileTextField(
+                                    title = "전화번호",
+                                    value = tel,
+                                    onValueChange = {},
+                                    enabled = false,
+                                    readOnly = true,
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "업체명",
+                                    value = companyName,
+                                    onValueChange = { companyName = it },
+                                    placeholder = "업체명을 입력하세요",
+                                    enabled = !isUploading,
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "대표상품",
+                                    value = product,
+                                    onValueChange = { product = it },
+                                    placeholder = "대표상품을 입력하세요",
+                                    enabled = !isUploading,
+                                )
+
+                                LabeledProfileSelectorField(
+                                    title = "업종",
+                                    selectedText = sectors.ifBlank { "업종 선택" },
+                                    enabled = !isUploading,
+                                    onClick = { showSectorPopup = true },
+                                )
+
+                                LabeledRegionSelectorFields(
+                                    title = "지역",
+                                    locale1Text = locale1.ifBlank { "시/도 선택" },
+                                    locale2Text = locale2.ifBlank { "구/군 선택" },
+                                    enabled = !isUploading,
+                                    onClickLocale1 = { showLocale1Popup = true },
+                                    onClickLocale2 = { showLocale2Popup = true },
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "담당자 성명",
+                                    value = managerName,
+                                    onValueChange = { managerName = it },
+                                    placeholder = "담당자 성명을 입력하세요",
+                                    enabled = !isUploading,
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "담당자 연락처",
+                                    value = managerTel,
+                                    onValueChange = { managerTel = it },
+                                    placeholder = "담당자 연락처를 입력하세요",
+                                    enabled = !isUploading,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Phone,
+                                        imeAction = ImeAction.Next,
+                                    ),
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "업체 연락처",
+                                    value = contact,
+                                    onValueChange = { contact = it },
+                                    placeholder = "업체 연락처를 입력하세요",
+                                    enabled = !isUploading,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Phone,
+                                        imeAction = ImeAction.Next,
+                                    ),
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "메뉴 정보",
+                                    value = menu,
+                                    onValueChange = { menu = it },
+                                    placeholder = "메뉴 정보를 입력하세요",
+                                    enabled = !isUploading,
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "최대 수용인원",
+                                    value = capacity,
+                                    onValueChange = { input ->
+                                        capacity = input.filter { it.isDigit() }
+                                    },
+                                    placeholder = "최대 수용인원을 입력하세요",
+                                    enabled = !isUploading,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Number,
+                                        imeAction = ImeAction.Next,
+                                    ),
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "영업시간",
+                                    value = businessTime,
+                                    onValueChange = { businessTime = it },
+                                    placeholder = "영업시간을 입력하세요",
+                                    enabled = !isUploading,
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "휴무 정보",
+                                    value = closedInfo,
+                                    onValueChange = { closedInfo = it },
+                                    placeholder = "휴무 정보를 입력하세요",
+                                    enabled = !isUploading,
+                                )
+
+                                LabeledProfileTextField(
+                                    title = "버스 주차 정보",
+                                    value = parkingInfo,
+                                    onValueChange = { parkingInfo = it },
+                                    placeholder = "버스 주차 정보를 입력하세요",
+                                    enabled = !isUploading,
+                                    keyboardOptions = KeyboardOptions(
+                                        imeAction = ImeAction.Done,
+                                    ),
+                                )
+
+                                ProfileCheckboxRow(
+                                    label = "예약 가능",
+                                    checked = bookingAvailable,
+                                    enabled = !isUploading,
+                                    onCheckedChange = { bookingAvailable = it },
+                                )
+                            }
                         }
                     }
 
-                    // 프로필 사진 + 사진설정 / 사진추가(명함필수) 버튼 영역
-                    item(key = "bus_photo_controls") {
+                    // 프로필 사진 + 사진설정 / 사진추가 버튼 영역
+                    item(key = "photo_controls") {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -594,13 +897,15 @@ private fun ProfileEditDialogContent(
                                 TBusButton(
                                     text = "사진설정",
                                     onClick = onRequestPickProfilePhoto,
+                                    enabled = !isUploading,
                                     variant = TBusButtonVariant.Secondary,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
 
                                 TBusButton(
-                                    text = "사진추가(명함필수)",
+                                    text = if (userType == UserTypes.Co) "사진추가(필수)" else "사진추가(명함필수)",
                                     onClick = onRequestPickBusinessCardPhoto,
+                                    enabled = !isUploading,
                                     variant = TBusButtonVariant.Primary,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
@@ -608,7 +913,7 @@ private fun ProfileEditDialogContent(
                         }
                     }
 
-                    // 선택한 명함 이미지 리스트 (X 버튼으로 제거 가능)
+                    // 선택한 이미지 리스트 (X 버튼으로 제거 가능)
                     itemsIndexed(
                         items = businessCardPhotos,
                         key = { index, path -> "${index}_$path" },
@@ -644,10 +949,11 @@ private fun ProfileEditDialogContent(
 
                                 IconButton(
                                     onClick = {
-                                        if (index in businessCardPhotos.indices) {
+                                        if (!isUploading && index in businessCardPhotos.indices) {
                                             businessCardPhotos.removeAt(index)
                                         }
                                     },
+                                    enabled = !isUploading,
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .padding(8.dp)
@@ -657,7 +963,7 @@ private fun ProfileEditDialogContent(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "명함 삭제",
+                                        contentDescription = "사진 삭제",
                                         tint = Color.White,
                                         modifier = Modifier.size(18.dp),
                                     )
@@ -676,11 +982,10 @@ private fun ProfileEditDialogContent(
                     verticalArrangement = Arrangement.spacedBy(TBusTheme.spacing.lg),
                 ) {
                     NormalUserProfileEditFields(
-                        userId = userId,
-                        password = password,
-                        showPassword = showPassword,
-                        onPasswordChange = { password = it },
-                        onTogglePasswordVisibility = { showPassword = !showPassword },
+                        tel = tel,
+                        userName = normalUserName,
+                        enabled = !isUploading,
+                        onUserNameChange = { normalUserName = it },
                     )
                 }
             }
@@ -696,6 +1001,7 @@ private fun ProfileEditDialogContent(
             ) {
                 Button(
                     onClick = onCancel,
+                    enabled = !isUploading,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp),
@@ -715,30 +1021,305 @@ private fun ProfileEditDialogContent(
 
                 TBusButton(
                     text = stringResource(id = R.string.btn_ok),
+                    enabled = !isUploading,
                     onClick = {
-                        val updated = SharedPreferencesCache.getCurrentUser().apply {
-                            if (userType == UserTypes.Bus) {
-                                this.tel = tel.trim()
-                                this.garage = garage.trim()
-                                this.ride = ride.trim()
-                                this.company_name = companyName.trim()
-                                this.passengers = passengers.trim().toIntOrNull() ?: 0
-                                this.name = driverName.trim()
-                                this.possible_date = possibleDate.trim()
-                                this.car_number = carNumber.trim()
-                                this.profile = profilePhoto
-                                this.photoList = ArrayList(businessCardPhotos)
-                                this.photo = Gson().toJson(businessCardPhotos)
-                            } else {
-                                this.password = password
+                        if (isUploading) return@TBusButton
+                        if (cachedUser.id <= 0) {
+                            Toast.makeText(
+                                context,
+                                "회원 정보를 확인할 수 없습니다.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                            return@TBusButton
+                        }
+                        if (userType != UserTypes.Bus &&
+                            userType != UserTypes.Co &&
+                            normalUserName.trim().isEmpty()
+                        ) {
+                            Toast.makeText(
+                                context,
+                                "이름을 입력해주세요.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                            return@TBusButton
+                        }
+
+                        isUploading = true
+                        onUploadingStateChanged(true)
+
+                        coroutineScope.launch {
+                            val result = withContext(Dispatchers.IO) {
+                                runCatching {
+                                    val gson = Gson()
+                                    val baseUser = serverUserSnapshot ?: SharedPreferencesCache.getCurrentUser()
+                                    val memberToUpdate = gson.fromJson(
+                                        gson.toJson(baseUser),
+                                        UserEntity::class.java,
+                                    ) ?: UserEntity()
+
+                                    memberToUpdate.id = cachedUser.id
+                                    memberToUpdate.type = userType
+
+                                    when (userType) {
+                                        UserTypes.Bus -> {
+                                            memberToUpdate.tel = tel.trim()
+                                            memberToUpdate.garage = garage.trim()
+                                            memberToUpdate.ride = ride.trim()
+                                            memberToUpdate.company_name = companyName.trim()
+                                            memberToUpdate.passengers = passengers.trim().toIntOrNull() ?: 0
+                                            memberToUpdate.name = driverName.trim()
+                                            memberToUpdate.possible_date = possibleDate.trim()
+                                            memberToUpdate.car_number = carNumber.trim()
+                                            memberToUpdate.profile = initialServerProfilePhoto.ifBlank {
+                                                baseUser.profile?.takeIf { !isLocalFilePath(it) }
+                                            }
+                                            memberToUpdate.photo = gson.toJson(initialServerPhotos.toList())
+                                            memberToUpdate.photoList = null
+                                        }
+
+                                        UserTypes.Co -> {
+                                            memberToUpdate.tel = tel.trim()
+                                            memberToUpdate.company_name = companyName.trim()
+                                            memberToUpdate.product = product.trim()
+                                            memberToUpdate.sectors = sectors.trim()
+                                            memberToUpdate.locale = listOf(locale1.trim(), locale2.trim())
+                                                .filter { it.isNotEmpty() }
+                                                .joinToString(" ")
+                                            memberToUpdate.manager_name = managerName.trim()
+                                            memberToUpdate.name = managerName.trim().ifEmpty {
+                                                baseUser.name.orEmpty()
+                                            }
+                                            memberToUpdate.manager_tel = managerTel.trim()
+                                            memberToUpdate.contact = contact.trim()
+                                            memberToUpdate.menu = menu.trim()
+                                            memberToUpdate.capacity = capacity.trim().toIntOrNull() ?: 0
+                                            memberToUpdate.time = businessTime.trim()
+                                            memberToUpdate.closed = closedInfo.trim()
+                                            memberToUpdate.parking = parkingInfo.trim()
+                                            memberToUpdate.booking = bookingAvailable
+                                            memberToUpdate.profile = initialServerProfilePhoto.ifBlank {
+                                                baseUser.profile?.takeIf { !isLocalFilePath(it) }
+                                            }
+                                            memberToUpdate.photo = gson.toJson(initialServerPhotos.toList())
+                                            memberToUpdate.photoList = null
+                                        }
+
+                                        else -> {
+                                            memberToUpdate.tel = tel.trim()
+                                            memberToUpdate.name = normalUserName.trim()
+                                        }
+                                    }
+
+                                    // 1. 회원 텍스트 정보 수정 (/servlet/users/updateMember)
+                                    val updateRes = MemberApiService.instance.updateMember(
+                                        userJson = gson.toJson(memberToUpdate),
+                                    )
+                                    if (updateRes.code != ResponseCodes.CodeOk) {
+                                        throw IllegalStateException("updateMember failed: code=${updateRes.code}, msg=${updateRes.msg}")
+                                    }
+
+                                    // 2. 버스 회원 또는 업소 회원인 경우 프로필 사진 및 추가 사진 변경사항 반영
+                                    if (userType == UserTypes.Bus || userType == UserTypes.Co) {
+                                        // 2-1. 프로필 사진이 새로 선택된 로컬 파일인 경우 업로드 (/servlet/users/updateProfilePicture)
+                                        if (isLocalFilePath(profilePhoto) && profilePhoto != uploadedLocalProfilePath) {
+                                            val profileFile = File(profilePhoto)
+                                            if (!profileFile.exists()) {
+                                                throw IllegalStateException("Profile file not found: $profilePhoto")
+                                            }
+                                            val uidBody = cachedUser.id.toString()
+                                                .toRequestBody("text/plain".toMediaTypeOrNull())
+                                            val filePart = MultipartBody.Part.createFormData(
+                                                "file",
+                                                profileFile.name,
+                                                profileFile.asRequestBody("image/jpeg".toMediaTypeOrNull()),
+                                            )
+                                            val profileRes = MemberApiService.instance.updateProfilePicture(
+                                                uid = uidBody,
+                                                file = filePart,
+                                            )
+                                            if (profileRes.code != ResponseCodes.CodeOk) {
+                                                throw IllegalStateException("updateProfilePicture failed: code=${profileRes.code}")
+                                            }
+                                            uploadedLocalProfilePath = profilePhoto
+                                        }
+
+                                        // 2-2. 기존 서버 사진 중 삭제된 항목을 역순 인덱스로 제거 (/servlet/users/removeUserPhoto)
+                                        val currentServerPhotosSnapshot = initialServerPhotos.toList()
+                                        for (idx in currentServerPhotosSnapshot.indices.reversed()) {
+                                            val serverPhotoPath = currentServerPhotosSnapshot[idx]
+                                            if (serverPhotoPath !in businessCardPhotos) {
+                                                val removeRes = MemberApiService.instance.removeUserPhoto(
+                                                    uid = cachedUser.id,
+                                                    pos = idx,
+                                                )
+                                                if (removeRes.code != ResponseCodes.CodeOk) {
+                                                    throw IllegalStateException("removeUserPhoto failed at pos=$idx: code=${removeRes.code}")
+                                                }
+                                                initialServerPhotos.removeAt(idx)
+                                            }
+                                        }
+
+                                        // 2-3. 새로 추가된 로컬 사진들을 순차 업로드 (/servlet/users/insertUserPhoto)
+                                        val localCardSnapshots = businessCardPhotos
+                                            .filter { isLocalFilePath(it) && it !in uploadedLocalCardPaths }
+                                        for (localPath in localCardSnapshots) {
+                                            val cardFile = File(localPath)
+                                            if (!cardFile.exists()) {
+                                                throw IllegalStateException("Photo file not found: $localPath")
+                                            }
+                                            val uidBody = cachedUser.id.toString()
+                                                .toRequestBody("text/plain".toMediaTypeOrNull())
+                                            val filePart = MultipartBody.Part.createFormData(
+                                                "file",
+                                                cardFile.name,
+                                                cardFile.asRequestBody("image/jpeg".toMediaTypeOrNull()),
+                                            )
+                                            val insertRes = MemberApiService.instance.insertUserPhoto(
+                                                uid = uidBody,
+                                                file = filePart,
+                                            )
+                                            if (insertRes.code != ResponseCodes.CodeOk) {
+                                                throw IllegalStateException("insertUserPhoto failed: code=${insertRes.code}")
+                                            }
+                                            uploadedLocalCardPaths.add(localPath)
+                                        }
+                                    }
+
+                                    // 3. 서버에서 최종 반영된 회원 정보를 다시 조회하여 동기화 (/servlet/users/getInfo)
+                                    val latestInfoRes = runCatching {
+                                        MemberApiService.instance.getUserInfo(cachedUser.id)
+                                    }.getOrNull()
+
+                                    val finalUser = if (latestInfoRes != null &&
+                                        latestInfoRes.code == ResponseCodes.CodeOk &&
+                                        !latestInfoRes.msg.isNullOrBlank()
+                                    ) {
+                                        gson.fromJson(latestInfoRes.msg, UserEntity::class.java)
+                                    } else {
+                                        null
+                                    } ?: memberToUpdate
+
+                                    finalUser.apply {
+                                        if (userType == UserTypes.Bus || userType == UserTypes.Co) {
+                                            val resolvedPhotos = this.photoList?.takeIf { it.isNotEmpty() }
+                                                ?: parsePhotoJsonList(this.photo)
+                                            this.photoList = ArrayList(resolvedPhotos)
+                                            this.photo = gson.toJson(resolvedPhotos)
+                                        } else {
+                                            this.tel = tel.trim()
+                                            this.name = normalUserName.trim()
+                                        }
+                                    }
+                                }
+                            }
+
+                            isUploading = false
+                            onUploadingStateChanged(false)
+
+                            result.onSuccess { updatedUser ->
+                                onConfirm(updatedUser)
+                            }.onFailure { error ->
+                                Timber.e(error, "Profile update failed")
+                                Toast.makeText(
+                                    context,
+                                    "프로필 수정에 실패했습니다. 다시 시도해주세요.",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
                             }
                         }
-                        onConfirm(updated)
                     },
                     variant = TBusButtonVariant.Primary,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp),
+                )
+            }
+        }
+    }
+
+    if (showSectorPopup) {
+        ProfileSelectionPopupDialog(
+            title = "업종 선택",
+            options = sectorOptions,
+            selectedOption = sectors,
+            onSelect = { selected ->
+                sectors = selected
+                showSectorPopup = false
+            },
+            onDismiss = { showSectorPopup = false },
+        )
+    }
+
+    if (showLocale1Popup) {
+        ProfileSelectionPopupDialog(
+            title = "지역(시/도) 선택",
+            options = locale1Options,
+            selectedOption = locale1,
+            onSelect = { selected ->
+                locale1 = selected
+                val newSubOptions = getSubLocaleOptions(context, locale1Options, selected)
+                if (locale2 !in newSubOptions) {
+                    locale2 = newSubOptions.firstOrNull().orEmpty()
+                }
+                showLocale1Popup = false
+            },
+            onDismiss = { showLocale1Popup = false },
+        )
+    }
+
+    if (showLocale2Popup) {
+        ProfileSelectionPopupDialog(
+            title = "상세 지역(구/군) 선택",
+            options = locale2Options,
+            selectedOption = locale2,
+            onSelect = { selected ->
+                locale2 = selected
+                showLocale2Popup = false
+            },
+            onDismiss = { showLocale2Popup = false },
+        )
+    }
+
+    if (isUploading) {
+        ProfileUploadLoadingDialog()
+    }
+}
+
+@Composable
+private fun ProfileUploadLoadingDialog() {
+    Dialog(
+        onDismissRequest = { /* 업로드 중 닫기 불가 */ },
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        TBusSurface(
+            shape = TBusTheme.shapes.cardLarge,
+            color = TBusTheme.colors.surfaceRaised,
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(
+                        horizontal = TBusTheme.spacing.xxl,
+                        vertical = TBusTheme.spacing.xl,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(TBusTheme.spacing.lg),
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(28.dp),
+                    color = TBusTheme.colors.route,
+                    strokeWidth = 3.dp,
+                )
+                TBusText(
+                    text = "업로드 중입니다...",
+                    variant = TBusTextVariant.Body,
+                    color = TBusTheme.colors.content,
+                    style = TBusTheme.typography.body.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
                 )
             }
         }
@@ -780,6 +1361,306 @@ private fun LabeledProfileTextField(
             keyboardOptions = keyboardOptions,
         )
     }
+}
+
+@Composable
+private fun LabeledProfileSelectorField(
+    title: String,
+    selectedText: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        TBusText(
+            text = title,
+            variant = TBusTextVariant.Label,
+            color = TBusTheme.colors.content,
+            style = TBusTheme.typography.label.copy(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+            ),
+        )
+
+        ProfileSelectorBox(
+            text = selectedText,
+            enabled = enabled,
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun LabeledRegionSelectorFields(
+    title: String,
+    locale1Text: String,
+    locale2Text: String,
+    enabled: Boolean = true,
+    onClickLocale1: () -> Unit,
+    onClickLocale2: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        TBusText(
+            text = title,
+            variant = TBusTextVariant.Label,
+            color = TBusTheme.colors.content,
+            style = TBusTheme.typography.label.copy(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+            ),
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(TBusTheme.spacing.sm),
+        ) {
+            ProfileSelectorBox(
+                text = locale1Text,
+                enabled = enabled,
+                onClick = onClickLocale1,
+                modifier = Modifier.weight(1f),
+            )
+
+            ProfileSelectorBox(
+                text = locale2Text,
+                enabled = enabled,
+                onClick = onClickLocale2,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileSelectorBox(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = modifier
+            .heightIn(min = 52.dp)
+            .clip(shape)
+            .background(TBusTheme.colors.surface)
+            .border(
+                width = 1.dp,
+                color = TBusTheme.colors.line,
+                shape = shape,
+            )
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        TBusText(
+            text = text,
+            variant = TBusTextVariant.Body,
+            color = if (enabled) TBusTheme.colors.content else TBusTheme.colors.contentMuted,
+            style = TBusTheme.typography.body.copy(
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+            ),
+        )
+
+        Icon(
+            imageVector = Icons.Default.ArrowDropDown,
+            contentDescription = "선택",
+            tint = if (enabled) TBusTheme.colors.content else TBusTheme.colors.contentMuted,
+        )
+    }
+}
+
+@Composable
+private fun ProfileCheckboxRow(
+    label: String,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(TBusTheme.colors.surface)
+            .border(
+                width = 1.dp,
+                color = TBusTheme.colors.line,
+                shape = shape,
+            )
+            .clickable(enabled = enabled) { onCheckedChange(!checked) }
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = if (enabled) onCheckedChange else null,
+            enabled = enabled,
+            colors = CheckboxDefaults.colors(
+                checkedColor = TBusTheme.colors.route,
+                uncheckedColor = TBusTheme.colors.contentMuted,
+            ),
+        )
+
+        TBusText(
+            text = label,
+            variant = TBusTextVariant.Body,
+            color = TBusTheme.colors.content,
+            style = TBusTheme.typography.body.copy(
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun ProfileSelectionPopupDialog(
+    title: String,
+    options: List<String>,
+    selectedOption: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+        ),
+    ) {
+        TBusSurface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 520.dp),
+            shape = TBusTheme.shapes.cardLarge,
+            color = TBusTheme.colors.surfaceRaised,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = TBusTheme.spacing.xl,
+                            top = TBusTheme.spacing.lg,
+                            end = TBusTheme.spacing.md,
+                            bottom = TBusTheme.spacing.md,
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    TBusText(
+                        text = title,
+                        variant = TBusTextVariant.Title,
+                        color = TBusTheme.colors.content,
+                        style = TBusTheme.typography.title.copy(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                    )
+
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "닫기",
+                            tint = TBusTheme.colors.content,
+                        )
+                    }
+                }
+
+                TBusHorizontalDivider()
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                ) {
+                    items(
+                        items = options,
+                        key = { it },
+                    ) { option ->
+                        val isSelected = option == selectedOption
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelect(option) }
+                                .background(
+                                    if (isSelected) {
+                                        TBusTheme.colors.route.copy(alpha = 0.08f)
+                                    } else {
+                                        Color.Transparent
+                                    },
+                                )
+                                .padding(
+                                    horizontal = TBusTheme.spacing.xl,
+                                    vertical = 14.dp,
+                                ),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            TBusText(
+                                text = option,
+                                variant = TBusTextVariant.Body,
+                                color = if (isSelected) TBusTheme.colors.route else TBusTheme.colors.content,
+                                style = TBusTheme.typography.body.copy(
+                                    fontSize = 15.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                ),
+                            )
+
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "선택됨",
+                                    tint = TBusTheme.colors.route,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun getSubLocaleOptions(
+    context: Context,
+    locale1Options: List<String>,
+    selectedLocale1: String,
+): List<String> {
+    val arrayResId = when (locale1Options.indexOf(selectedLocale1)) {
+        0 -> R.array.localeSeoul
+        1 -> R.array.localeBusan
+        2 -> R.array.localeDaegu
+        3 -> R.array.localeIncheon
+        4 -> R.array.localeGwangju
+        5 -> R.array.localeDaejeon
+        6 -> R.array.localeUlsan
+        7 -> R.array.localeGyeonggi
+        8 -> R.array.localeGangwon
+        9 -> R.array.localeChungcheongbuk
+        10 -> R.array.localeChungcheongnam
+        11 -> R.array.localeJeollabuk
+        12 -> R.array.localeJeollanam
+        13 -> R.array.localeGyeongsangbuk
+        14 -> R.array.localeGyeongsangnam
+        15 -> R.array.localeJeju
+        else -> R.array.localeSeoul
+    }
+    return context.resources.getStringArray(arrayResId).toList()
 }
 
 @Composable
@@ -908,48 +1789,37 @@ private fun ProfileImageCropDialog(
 
 @Composable
 private fun NormalUserProfileEditFields(
-    userId: String,
-    password: String,
-    showPassword: Boolean,
-    onPasswordChange: (String) -> Unit,
-    onTogglePasswordVisibility: () -> Unit,
+    tel: String,
+    userName: String,
+    enabled: Boolean = true,
+    onUserNameChange: (String) -> Unit,
 ) {
-    // 아이디 (디폴트 표시, 수정 불가)
-    TBusTextField(
-        value = userId,
+    // 전화번호 (디폴트 표시, 수정 불가)
+    LabeledProfileTextField(
+        title = "전화번호",
+        value = tel,
         onValueChange = {},
-        modifier = Modifier.fillMaxWidth(),
         enabled = false,
         readOnly = true,
-        label = "아이디",
-        singleLine = true,
     )
 
-    // 암호 (디폴트 표시, 수정 가능)
-    TBusTextField(
-        value = password,
-        onValueChange = onPasswordChange,
-        modifier = Modifier.fillMaxWidth(),
-        enabled = true,
-        label = "암호",
-        placeholder = "암호를 입력하세요",
-        singleLine = true,
-        visualTransformation = if (showPassword) {
-            VisualTransformation.None
-        } else {
-            PasswordVisualTransformation()
-        },
+    // 이름 (디폴트 표시, 수정 가능)
+    LabeledProfileTextField(
+        title = "이름",
+        value = userName,
+        onValueChange = onUserNameChange,
+        placeholder = "이름을 입력하세요",
+        enabled = enabled,
         keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done,
         ),
-        trailingIcon = {
-            TBusTextButton(
-                text = if (showPassword) "숨김" else "보기",
-                onClick = onTogglePasswordVisibility,
-            )
-        },
     )
+}
+
+private fun isLocalFilePath(rawPath: String?): Boolean {
+    val trimmed = rawPath?.trim().orEmpty()
+    if (trimmed.isEmpty()) return false
+    return trimmed.startsWith("/") || trimmed.startsWith("file://")
 }
 
 private fun resolveImageModel(rawPath: String?): Any? {
