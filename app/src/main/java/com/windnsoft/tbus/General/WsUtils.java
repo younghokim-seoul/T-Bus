@@ -1,7 +1,7 @@
 package com.windnsoft.tbus.General;
 
-import android.Manifest;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,9 +16,6 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
-
-import com.gun0912.tedpermission.PermissionListener;
-import com.gun0912.tedpermission.normal.TedPermission;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -149,36 +146,37 @@ public class WsUtils {
         }
     }
 
-    public static void phoneCall(final Context context, final String number) {
-        TedPermission.create()
-                .setPermissionListener(new PermissionListener() {
-                    @Override
-                    public void onPermissionGranted() {
-                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
-                        try {
-                            context.startActivity(intent);
-                        } catch (Exception e) {
-                            dialFallback(context, number);
-                        }
-                    }
-
-                    @Override
-                    public void onPermissionDenied(List<String> deniedPermissions) {
-                        dialFallback(context, number);
-                    }
-                })
-                .setDeniedMessage("전화 걸기 기능을 위해 전화 권한이 필요합니다.\n\n[설정] > [권한]에서 권한을 허용해주세요.")
-                .setPermissions(Manifest.permission.CALL_PHONE)
-                .check();
+    public static void phoneCall(Context context, String number) {
+        if (number == null || number.trim().isEmpty()) {
+            Toast.makeText(context, "등록된 전화번호가 없습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number.trim(), null));
+        startCommunicationActivity(context, intent, "전화 앱을 실행할 수 없습니다.");
     }
 
-    private static void dialFallback(Context context, String number) {
+    public static boolean composeSms(Context context, String number, String message) {
+        if (number == null || number.trim().isEmpty()) {
+            Toast.makeText(context, "등록된 전화번호가 없습니다.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", number.trim(), null));
+        if (message != null) {
+            intent.putExtra("sms_body", message);
+        }
+        return startCommunicationActivity(context, intent, "문자 앱을 실행할 수 없습니다.");
+    }
+
+    private static boolean startCommunicationActivity(Context context, Intent intent, String errorMessage) {
+        if (!(context instanceof Activity)) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
         try {
-            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + number));
             context.startActivity(intent);
-        } catch (Exception e) {
-            Toast.makeText(context, "전화기능을 불러올 수 없습니다.", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+            return true;
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show();
+            return false;
         }
     }
 

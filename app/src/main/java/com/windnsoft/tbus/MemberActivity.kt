@@ -2,7 +2,6 @@ package com.windnsoft.tbus
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.widget.Toast
@@ -753,14 +752,7 @@ private fun MemberDetailOverlay(
                     contentDescription = "문자 보내기",
                     onClick = {
                         if (phoneNumber.isNotEmpty()) {
-                            try {
-                                val smsIntent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("smsto:$phoneNumber")
-                                }
-                                context.startActivity(smsIntent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "문자 앱을 실행할 수 없습니다.", Toast.LENGTH_SHORT).show()
-                            }
+                            WsUtils.composeSms(context, phoneNumber, null)
                         } else {
                             Toast.makeText(context, "등록된 전화번호가 없습니다.", Toast.LENGTH_SHORT).show()
                         }

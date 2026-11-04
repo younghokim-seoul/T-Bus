@@ -1,8 +1,6 @@
 package com.windnsoft.tbus.CallSms;
 
 import android.app.DialogFragment;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +12,7 @@ import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.General.ObjectRecursivelyInfo;
 import com.windnsoft.tbus.General.WsLog;
+import com.windnsoft.tbus.General.WsUtils;
 import com.windnsoft.tbus.R;
 
 
@@ -75,11 +74,9 @@ public class CallSmsConfirmDialog extends DialogFragment implements View.OnClick
                 dismiss();
                 return;
             }
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:" + member.mobilePhone));
-
-            intent.putExtra("sms_body", message);
-            startActivity(intent);
-            dismiss();
+            if (WsUtils.composeSms(getActivity(), member.mobilePhone, message)) {
+                dismiss();
+            }
         }
     }
 

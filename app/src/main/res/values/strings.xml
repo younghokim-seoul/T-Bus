@@ -64,7 +64,7 @@
 
     <string name="emergency">긴급.</string>
     <string name="call_sms">호출</string>
-    <string name="call_sms_guidance">확인을 누르면 호출 문자를 보냅니다.\n사용하는 요금제에 따라 문자 요금이 부과될 수 있습니다.</string>
+    <string name="call_sms_guidance">확인을 누르면 문자 작성 화면이 열립니다.\n문자 앱에서 내용을 확인한 후 전송해주세요.</string>
 
     <string name="indi_conn_btn">개별무전</string>
     <string name="indi_dialog_title">멤버 리스트</string>

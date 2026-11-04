@@ -2,8 +2,6 @@ package com.windnsoft.tbus.CallSms;
 
 import android.app.DialogFragment;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
@@ -18,6 +16,7 @@ import android.widget.EditText;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.General.WsLog;
+import com.windnsoft.tbus.General.WsUtils;
 import com.windnsoft.tbus.R;
 
 import java.util.ArrayList;
@@ -119,12 +118,9 @@ public class CallSmsListFragment extends DialogFragment {
                     UserEntity user = SharedPreferencesCache.getCurrentUser();
                     String link = "http://play.google.com/store/apps/details?id="+getActivity().getPackageName();
                     String message = "[" + getString(R.string.app_name) + "]\n" + user.name + " 님의 초대입니다 \n" +link;
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:" + member.mobilePhone));
-
-                    intent.putExtra("sms_body", message);
-                    startActivity(intent);
-
-                    dismiss();
+                    if (WsUtils.composeSms(getActivity(), member.mobilePhone, message)) {
+                        dismiss();
+                    }
                 }
             });
         } catch (IllegalArgumentException e) {
