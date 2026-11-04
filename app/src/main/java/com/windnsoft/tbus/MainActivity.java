@@ -34,6 +34,7 @@ import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.BoardIDs;
 import com.windnsoft.tbus.Entities.UserTypes;
+import com.windnsoft.tbus.Fragment.AppUpdateDialogFragment;
 import com.windnsoft.tbus.Fragment.BoardListView;
 import com.windnsoft.tbus.Fragment.BoardWriteFragment;
 import com.windnsoft.tbus.Fragment.BusEstimateListView;
@@ -147,6 +148,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         loadAd();
         loadList(bid);
+        AppUpdateDialogFragment.checkAndShowIfNeeded(this);
     }
 
     @Override
