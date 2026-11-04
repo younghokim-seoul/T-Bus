@@ -17,12 +17,22 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            storeFile file('../key/tbus-release.jks')
+            storePassword 'tbus1234!'
+            keyAlias 'tbus'
+            keyPassword 'tbus1234!'
+        }
+    }
+
     buildTypes {
         debug {
             resValue "string", "google_maps_api_key", "AIzaSyC5yGx_orS8xcunWkezkVD-nmxcysIl0WI"
         }
 
         release {
+            signingConfig signingConfigs.release
             resValue "string", "google_maps_api_key", "AIzaSyC5yGx_orS8xcunWkezkVD-nmxcysIl0WI"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -78,6 +88,7 @@ dependencies {
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-graphics'
     implementation 'androidx.compose.ui:ui-tooling-preview'
+
     implementation 'androidx.compose.material3:material3'
     implementation 'io.github.kyant0:backdrop:1.0.6'
     implementation 'androidx.activity:activity-compose:1.9.0'
