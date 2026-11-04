@@ -4,6 +4,15 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+def googleMapsApiKey = localProperties.getProperty('GOOGLE_MAPS_API_KEY', '')
+
 android {
     namespace 'com.windnsoft.tbus'
     compileSdk 36
@@ -28,12 +37,12 @@ android {
 
     buildTypes {
         debug {
-            resValue "string", "google_maps_api_key", "AIzaSyC5yGx_orS8xcunWkezkVD-nmxcysIl0WI"
+            resValue "string", "google_maps_api_key", googleMapsApiKey
         }
 
         release {
             signingConfig signingConfigs.release
-            resValue "string", "google_maps_api_key", "AIzaSyC5yGx_orS8xcunWkezkVD-nmxcysIl0WI"
+            resValue "string", "google_maps_api_key", googleMapsApiKey
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
