@@ -184,4 +184,42 @@ public class WsUtils {
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         return new Point(dm.widthPixels, dm.heightPixels);
     }
+
+    public static String formatBoardDate(String rawTime) {
+        if (rawTime == null || rawTime.trim().isEmpty()) {
+            return "";
+        }
+        String trimmed = rawTime.trim();
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\d{4})[-/.년\\s]+(\\d{1,2})[-/.월\\s]+(\\d{1,2})[일\\sT]+(\\d{1,2})[:시\\s]+(\\d{1,2})");
+        java.util.regex.Matcher matcher = pattern.matcher(trimmed);
+        if (matcher.find()) {
+            try {
+                int yyyy = Integer.parseInt(matcher.group(1));
+                int MM = Integer.parseInt(matcher.group(2));
+                int dd = Integer.parseInt(matcher.group(3));
+                int HH = Integer.parseInt(matcher.group(4));
+                int mm = Integer.parseInt(matcher.group(5));
+                return String.format(java.util.Locale.KOREA, "%04d년 %02d월 %02d일 %02d시 %02d분", yyyy, MM, dd, HH, mm);
+            } catch (Exception ignored) {
+            }
+        }
+        String[] patterns = new String[] {
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm"
+        };
+        for (String p : patterns) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat(p, java.util.Locale.KOREA);
+                java.util.Date date = sdf.parse(trimmed);
+                if (date != null) {
+                    java.text.SimpleDateFormat outSdf = new java.text.SimpleDateFormat("yyyy년 MM월 dd일 HH시 mm분", java.util.Locale.KOREA);
+                    return outSdf.format(date);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return trimmed;
+    }
 }

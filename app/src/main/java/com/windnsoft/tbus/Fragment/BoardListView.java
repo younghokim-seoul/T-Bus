@@ -26,6 +26,7 @@ import com.windnsoft.tbus.Entities.BoardItemEntity;
 import com.windnsoft.tbus.Entities.NoticeEntity;
 import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
+import com.windnsoft.tbus.General.WsUtils;
 import com.windnsoft.tbus.Http.HttpRequestAsync;
 import com.windnsoft.tbus.Http.HttpRequestParams;
 import com.windnsoft.tbus.Http.ResponseCodes;
@@ -98,8 +99,8 @@ public class BoardListView extends RecyclerView {
                         List<String> photo = (List<String>) gson.fromJson(entity.photos, listType);
                         entity.photo = photo;
                     }
-                    if (entity.time != null && entity.time.length() > 16)
-                        entity.time = entity.time.substring(5, 16);
+                    if (entity.time != null)
+                        entity.time = WsUtils.formatBoardDate(entity.time);
                 }
                 sortListIfNeeded(entityList);
                 setList(entityList);

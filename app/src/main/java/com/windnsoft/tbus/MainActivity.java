@@ -33,6 +33,7 @@ import com.windnsoft.tbus.CallSms.CallSmsListFragment;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Common.SharedPreferencesCache;
 import com.windnsoft.tbus.Entities.BoardIDs;
+import com.windnsoft.tbus.Entities.UserEntity;
 import com.windnsoft.tbus.Entities.UserTypes;
 import com.windnsoft.tbus.Fragment.AppUpdateDialogFragment;
 import com.windnsoft.tbus.Fragment.BoardListView;
@@ -368,36 +369,48 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void uploadQrContentToMainBoard(final String qrContent) {
+        final int targetBid = (BoardID != null && BoardID.id != BoardIDs.Estimate && BoardID.id != BoardIDs.My)
+                ? BoardID.id
+                : BoardIDs.Free;
+
+        UserEntity user = SharedPreferencesCache.getCurrentUser();
+        if (user == null || user.id <= 0) {
+            Toast.makeText(MainActivity.this, "로그인 후 이용할 수 있습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         BoardOperator.upload(
                 MainActivity.this,
-                BoardIDs.Free,
+                targetBid,
                 qrContent,
                 new ArrayList<File>(),
                 new HttpRequestAsync.OnCompleteListener() {
                     @Override
                     public void onSuccess(String result) {
                         Toast.makeText(MainActivity.this, "등록되었습니다.", Toast.LENGTH_SHORT).show();
-                        navigateToMainBoard();
+                        navigateToBoard(targetBid);
                     }
 
                     @Override
                     public void onFail(String result) {
-                        navigateToMainBoard();
+                        Toast.makeText(MainActivity.this, "등록에 실패했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+                        navigateToBoard(targetBid);
                     }
 
                     @Override
                     public void onError(int code, String result) {
-                        navigateToMainBoard();
+                        Toast.makeText(MainActivity.this, "등록 중 오류가 발생했습니다. (" + code + ")", Toast.LENGTH_SHORT).show();
+                        navigateToBoard(targetBid);
                     }
                 }
         );
     }
 
-    private void navigateToMainBoard() {
-        if (BoardID != null && BoardID.id == BoardIDs.Free) {
-            loadList(BoardIDs.Free);
+    private void navigateToBoard(int bid) {
+        if (BoardID != null && BoardID.id == bid) {
+            loadList(bid);
         } else {
-            intentBoard(BoardIDs.Free);
+            intentBoard(bid);
         }
     }
 
