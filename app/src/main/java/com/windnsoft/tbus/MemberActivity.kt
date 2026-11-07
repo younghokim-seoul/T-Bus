@@ -499,6 +499,7 @@ private fun MemberTypeToggleBar(
                 TBusPillButton(
                     label = tab.label,
                     selected = isSelected,
+                    textVariant = TBusTextVariant.Body,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = { onTabSelected(tab) },
                 )

@@ -16,6 +16,7 @@ fun TBusPillButton(
     modifier: Modifier = Modifier,
     selected: Boolean = false,
     enabled: Boolean = true,
+    textVariant: TBusTextVariant = TBusTextVariant.Label,
     leadingIcon: (@Composable (contentColor: Color) -> Unit)? = null,
     onClick: () -> Unit,
 ) {
@@ -50,7 +51,7 @@ fun TBusPillButton(
             TBusText(
                 text = label,
                 color = contentColor,
-                variant = TBusTextVariant.Label,
+                variant = textVariant,
                 maxLines = 1,
             )
         }

@@ -76,6 +76,7 @@
             >
 
             <ImageView
+                android:visibility="gone"
                 android:id="@+id/advImg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

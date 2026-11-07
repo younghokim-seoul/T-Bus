@@ -64,16 +64,12 @@ public class IntroActivity extends Activity {
     private void checkNetworkAndLogin() {
         tel = SharedPreferencesCache.getRealPhoneNumber();
 
-//        showJoinFragment();
+//        tel ="01077692264";
+
+
 
         if (!NetworkStateReceiver.getInstance().isNetworkAvailable()) {
             AlertDialog.Builder alert = new AlertDialog.Builder(IntroActivity.this);
-//            alert.setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialogInterface, int i) {
-//                    destroy();
-//                }
-//            });
             alert.setPositiveButton(getString(R.string.confirm), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
