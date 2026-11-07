@@ -5,9 +5,15 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.Typeface
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.util.TypedValue
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -66,6 +72,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +89,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -121,6 +129,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.math.ceil
 import kotlin.math.max
 
 data class CompanyLatLngMarker(
@@ -135,6 +144,145 @@ data class CompanyLatLngMarker(
 
     val position: LatLng
         get() = LatLng(lat, lng)
+}
+
+private object CompanyMarkerIconHelper {
+    fun getMarkerIcon(
+        context: Context,
+        title: String,
+        isSelected: Boolean,
+        cache: MutableMap<String, BitmapDescriptor>,
+    ): BitmapDescriptor {
+        val cleanTitle = title.replace(Regex("\\s+"), " ").trim()
+        val maxLen = if (isSelected) 15 else 10
+        val label = if (cleanTitle.length > maxLen) {
+            cleanTitle.take(maxLen - 1) + "…"
+        } else {
+            cleanTitle
+        }
+        val cacheKey = "${label}_${isSelected}"
+        return cache.getOrPut(cacheKey) {
+            createMarkerBitmapDescriptor(context, label, isSelected)
+        }
+    }
+
+    private fun createMarkerBitmapDescriptor(
+        context: Context,
+        label: String,
+        isSelected: Boolean,
+    ): BitmapDescriptor {
+        val density = context.resources.displayMetrics.density
+        val fontSizeSp = if (isSelected) 11.5f else 10.5f
+        val textSizePx = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP,
+            fontSizeSp,
+            context.resources.displayMetrics,
+        )
+
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = if (isSelected) {
+                android.graphics.Color.WHITE
+            } else {
+                android.graphics.Color.parseColor("#191F28")
+            }
+            textSize = textSizePx
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+
+        val textWidth = textPaint.measureText(label)
+        val fontMetrics = textPaint.fontMetrics
+        val textHeight = fontMetrics.descent - fontMetrics.ascent
+
+        val horizontalPadding = (if (isSelected) 8f else 6.5f) * density
+        val verticalPadding = (if (isSelected) 4.5f else 3.5f) * density
+        val dotRadius = (if (isSelected) 0f else 2.5f) * density
+        val dotSpacing = (if (isSelected) 0f else 3.5f) * density
+        val triangleWidth = (if (isSelected) 7f else 6f) * density
+        val triangleHeight = (if (isSelected) 5f else 4f) * density
+        val cornerRadius = (if (isSelected) 8f else 6f) * density
+        val strokeWidth = (if (isSelected) 1.8f else 1.2f) * density
+
+        val hasDot = !isSelected
+        val contentWidth = (if (hasDot) dotRadius * 2 + dotSpacing else 0f) + textWidth
+        val bubbleWidth = horizontalPadding * 2 + contentWidth + strokeWidth * 2
+        val bubbleHeight = verticalPadding * 2 + textHeight
+
+        val totalWidth = ceil(bubbleWidth).toInt().coerceAtLeast(1)
+        val totalHeight = ceil(bubbleHeight + triangleHeight + strokeWidth).toInt().coerceAtLeast(1)
+
+        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val strokeInset = strokeWidth / 2f
+        val left = strokeInset
+        val top = strokeInset
+        val right = totalWidth.toFloat() - strokeInset
+        val bottom = bubbleHeight
+        val centerX = totalWidth / 2f
+        val triangleTipY = totalHeight.toFloat() - strokeInset
+
+        val path = Path().apply {
+            moveTo(left + cornerRadius, top)
+            lineTo(right - cornerRadius, top)
+            quadTo(right, top, right, top + cornerRadius)
+            lineTo(right, bottom - cornerRadius)
+            quadTo(right, bottom, right - cornerRadius, bottom)
+
+            lineTo(centerX + triangleWidth / 2f, bottom)
+            lineTo(centerX, triangleTipY)
+            lineTo(centerX - triangleWidth / 2f, bottom)
+
+            lineTo(left + cornerRadius, bottom)
+            quadTo(left, bottom, left, bottom - cornerRadius)
+            lineTo(left, top + cornerRadius)
+            quadTo(left, top, left + cornerRadius, top)
+            close()
+        }
+
+        // Fill Paint
+        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = if (isSelected) {
+                android.graphics.Color.parseColor("#E53935") // Active Primary Red
+            } else {
+                android.graphics.Color.WHITE
+            }
+        }
+        canvas.drawPath(path, fillPaint)
+
+        // Stroke Paint
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            this.strokeWidth = strokeWidth
+            strokeJoin = Paint.Join.ROUND
+            strokeCap = Paint.Cap.ROUND
+            color = if (isSelected) {
+                android.graphics.Color.parseColor("#B71C1C")
+            } else {
+                android.graphics.Color.parseColor("#E53935")
+            }
+        }
+        canvas.drawPath(path, strokePaint)
+
+        // Draw Content (dot + text)
+        val bubbleCenterY = (top + bottom) / 2f
+        var startX = (totalWidth - contentWidth) / 2f
+
+        if (hasDot) {
+            val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                color = android.graphics.Color.parseColor("#E53935")
+            }
+            val dotCenterX = startX + dotRadius
+            canvas.drawCircle(dotCenterX, bubbleCenterY, dotRadius, dotPaint)
+            startX += dotRadius * 2 + dotSpacing
+        }
+
+        val textBaseline = bubbleCenterY - (fontMetrics.ascent + fontMetrics.descent) / 2f
+        canvas.drawText(label, startX, textBaseline, textPaint)
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
 }
 
 class FamousCompanyActivity : ComponentActivity() {
@@ -187,6 +335,7 @@ fun FamousCompanyScreen(
 
     var selectedMarker by remember { mutableStateOf<CompanyLatLngMarker?>(null) }
     val companyDetailCache = remember { mutableStateMapOf<Int, UserEntity>() }
+    val markerIconCache = remember { mutableMapOf<String, BitmapDescriptor>() }
     var isLoadingSelectedDetail by remember { mutableStateOf(false) }
     var detailDialogEntity by remember { mutableStateOf<UserEntity?>(null) }
 
@@ -386,15 +535,15 @@ fun FamousCompanyScreen(
                             state = remember(marker.id, marker.lat, marker.lng) {
                                 MarkerState(position = marker.position)
                             },
-                            title = marker.displayTitle,
-                            snippet = marker.addr?.takeIf { it.isNotBlank() },
-                            icon = BitmapDescriptorFactory.defaultMarker(
-                                if (isSelected) {
-                                    BitmapDescriptorFactory.HUE_ORANGE
-                                } else {
-                                    BitmapDescriptorFactory.HUE_RED
-                                },
-                            ),
+                            icon = remember(marker.id, marker.displayTitle, isSelected) {
+                                CompanyMarkerIconHelper.getMarkerIcon(
+                                    context = context,
+                                    title = marker.displayTitle,
+                                    isSelected = isSelected,
+                                    cache = markerIconCache,
+                                )
+                            },
+                            anchor = Offset(0.5f, 1.0f),
                             zIndex = if (isSelected) 2f else 1f,
                             onClick = {
                                 selectedMarker = marker
@@ -410,7 +559,7 @@ fun FamousCompanyScreen(
                                         )
                                     }
                                 }
-                                false
+                                true
                             },
                         )
                     }
