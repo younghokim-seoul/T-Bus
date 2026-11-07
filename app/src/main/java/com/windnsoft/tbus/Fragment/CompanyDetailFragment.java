@@ -83,23 +83,39 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
         }
 
         try {
-            WsLog.e(entity.locale + "// " + entity.addr);
+            String fullAddress = "";
+            if (entity != null) {
+                if (entity.locale != null && !entity.locale.trim().isEmpty()) {
+                    fullAddress += entity.locale.trim() + " ";
+                }
+                if (entity.addr != null && !entity.addr.trim().isEmpty()) {
+                    fullAddress += entity.addr.trim();
+                }
+            }
+            fullAddress = fullAddress.trim();
+
+            WsLog.e(fullAddress);
             Geocoder geocoder = new Geocoder(getActivity());
-            final List<Address> addresses = geocoder.getFromLocationName(entity.locale + " " + entity.addr, 1);
+            final List<Address> addresses = geocoder.getFromLocationName(fullAddress, 1);
 
             if (addresses != null && addresses.size() > 0) {
+                final LatLng targetLatLng = new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
                 MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.cvMapView);
-                mapFragment.getMapAsync(new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(GoogleMap googleMap) {
-                        MarkerOptions markerOptions = new MarkerOptions();
-                        markerOptions.position(new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude()));
-                        googleMap.addMarker(markerOptions);
+                if (mapFragment != null) {
+                    mapFragment.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(GoogleMap googleMap) {
+                            googleMap.clear();
+                            MarkerOptions markerOptions = new MarkerOptions().position(targetLatLng);
+                            if (entity != null && entity.company_name != null) {
+                                markerOptions.title(entity.company_name);
+                            }
+                            googleMap.addMarker(markerOptions);
 
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(markerOptions.getPosition()));
-                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(14));
-                    }
-                });
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(targetLatLng, 15f));
+                        }
+                    });
+                }
             } else {
                 Toast.makeText(getActivity(), "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
             }
