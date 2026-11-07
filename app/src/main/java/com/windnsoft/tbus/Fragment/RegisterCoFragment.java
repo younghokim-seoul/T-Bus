@@ -451,6 +451,12 @@ public class RegisterCoFragment extends DialogFragment implements View.OnClickLi
         if (toastIfTextEmpty(jcParkingEd)) return;
         if (toastIfTextEmpty(jcDetailEd)) return;
 
+        String selectedSubLocale = jcLocale2Sp.getSelectedItem() != null ? jcLocale2Sp.getSelectedItem().toString().trim() : "";
+        if (selectedSubLocale.isEmpty() || selectedSubLocale.contains("전체")) {
+            Toast.makeText(getActivity(), "세부 지역을 선택해주세요.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         final UserEntity user = new UserEntity();
         user.type = UserTypes.Co;
         user.tel = SharedPreferencesCache.getRealPhoneNumber();

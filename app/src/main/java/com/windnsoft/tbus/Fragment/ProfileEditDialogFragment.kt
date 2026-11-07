@@ -1660,7 +1660,7 @@ private fun getSubLocaleOptions(
         15 -> R.array.localeJeju
         else -> R.array.localeSeoul
     }
-    return context.resources.getStringArray(arrayResId).toList()
+    return context.resources.getStringArray(arrayResId).filter { !it.contains("전체") }
 }
 
 @Composable

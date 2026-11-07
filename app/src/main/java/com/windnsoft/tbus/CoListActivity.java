@@ -127,8 +127,19 @@ public class CoListActivity extends Activity implements View.OnClickListener {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 locale2 = l;
-                String locale = localeSpinner1.getSelectedItem().toString().trim() + " " + localeSpinner2.getSelectedItem().toString().trim();
-                listView.loadList(sector, locale, locale);
+                String selectedLocale1 = localeSpinner1.getSelectedItem() != null ? localeSpinner1.getSelectedItem().toString().trim() : "";
+                String selectedLocale2 = localeSpinner2.getSelectedItem() != null ? localeSpinner2.getSelectedItem().toString().trim() : "";
+
+                String locale;
+                String displayLocale;
+                if (selectedLocale2.isEmpty() || selectedLocale2.contains("전체") || i == 0) {
+                    locale = selectedLocale1;
+                    displayLocale = selectedLocale1;
+                } else {
+                    locale = selectedLocale1 + " " + selectedLocale2;
+                    displayLocale = locale;
+                }
+                listView.loadList(sector, locale, displayLocale);
             }
 
             @Override
