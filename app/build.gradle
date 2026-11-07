@@ -11,7 +11,7 @@ if (localPropertiesFile.exists()) {
         localProperties.load(reader)
     }
 }
-def googleMapsApiKey = localProperties.getProperty('GOOGLE_MAPS_API_KEY', '')
+def googleMapsApiKey = localProperties.getProperty('GOOGLE_MAPS_API_KEY', 'AIzaSyC5yGx_orS8xcunWkezkVD-nmxcysIl0WI')
 
 android {
     namespace 'com.windnsoft.tbus'
@@ -65,6 +65,15 @@ android {
     lint {
         abortOnError = false
         checkReleaseBuilds = false
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def buildVersionName = variant.versionName
+            def buildType = variant.buildType.name
+            def resultApkName = "tbus-${buildVersionName}-${buildType}.apk"
+            outputFileName = resultApkName
+        }
     }
 }
 
