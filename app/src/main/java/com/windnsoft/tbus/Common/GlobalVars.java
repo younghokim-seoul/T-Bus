@@ -56,4 +56,5 @@ public class GlobalVars {
         return GetPictureFullPath(PathAdPictureFolder + "/" + filename);
     }
     public final static String WalieTaliePackageName = "com.windnsoft.smartwalkietalkie";
+    public final static String WalieTalieOneStoreUrl = "https://onesto.re/0000738045";
 }

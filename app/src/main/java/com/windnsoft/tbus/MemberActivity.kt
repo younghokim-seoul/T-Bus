@@ -141,7 +141,7 @@ class MemberActivity : ComponentActivity() {
                     },
                     onMemberClick = {},
                     onTalkieClick = {
-                        WsUtils.runExternalAppOrGooglePlay(this, GlobalVars.WalieTaliePackageName)
+                        WsUtils.runWalkieTalkieApp(this)
                     },
                 )
             }

@@ -17,6 +17,8 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
+import com.windnsoft.tbus.Common.GlobalVars;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -113,37 +115,66 @@ public class WsUtils {
     }
 
     public static boolean isExistExternalApp(Context context, String packageName) {
-        boolean isExist = false;
+        if (context == null || packageName == null) {
+            return false;
+        }
+        try {
+            context.getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException ignored) {
+        } catch (Exception ignored) {
+        }
 
         PackageManager pkgMgr = context.getPackageManager();
-        List<ResolveInfo> mApps;
+        try {
+            Intent launchIntent = pkgMgr.getLaunchIntentForPackage(packageName);
+            if (launchIntent != null) {
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        mApps = pkgMgr.queryIntentActivities(mainIntent, 0);
-
         try {
+            List<ResolveInfo> mApps = pkgMgr.queryIntentActivities(mainIntent, 0);
             for (int i = 0; i < mApps.size(); i++) {
                 if (mApps.get(i).activityInfo.packageName.startsWith(packageName)) {
-                    isExist = true;
-                    break;
+                    return true;
                 }
             }
-        } catch (Exception e) {
-            isExist = false;
+        } catch (Exception ignored) {
         }
-        return isExist;
+        return false;
+    }
+
+    public static void runExternalAppOrMarket(Context context, String packageName, String fallbackUrl) {
+        if (context == null) return;
+        try {
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(context, "스토어로 이동할 수 없습니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static void runWalkieTalkieApp(Context context) {
+        runExternalAppOrMarket(context, GlobalVars.WalieTaliePackageName, GlobalVars.WalieTalieOneStoreUrl);
     }
 
     public static void runExternalAppOrGooglePlay(Context context, String packageName) {
-        if (isExistExternalApp(context, packageName)) {
-            Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        } else {
-            String url = "market://details?id=" + packageName;
-            Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            context.startActivity(i);
-        }
+        runExternalAppOrMarket(context, packageName, "market://details?id=" + packageName);
     }
 
     public static void phoneCall(Context context, String number) {

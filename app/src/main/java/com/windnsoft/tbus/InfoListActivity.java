@@ -115,7 +115,7 @@ public class InfoListActivity extends Activity implements View.OnClickListener {
                 finish();
                 break;
             case R.id.bottomTalkieBtn:
-                WsUtils.runExternalAppOrGooglePlay(this, GlobalVars.WalieTaliePackageName);
+                WsUtils.runWalkieTalkieApp(this);
                 break;
 
             case R.id.mlBookAllBtn:
