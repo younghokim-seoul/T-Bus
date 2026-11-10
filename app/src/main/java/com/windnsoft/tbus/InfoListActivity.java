@@ -29,6 +29,7 @@ import com.windnsoft.tbus.CallSms.CallSmsListFragment;
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Entities.BoardIDs;
 import com.windnsoft.tbus.Entities.MountainListType;
+import com.windnsoft.tbus.Fragment.AdBannerSliderView;
 import com.windnsoft.tbus.Fragment.BoardListView;
 import com.windnsoft.tbus.Fragment.BoardWriteFragment;
 import com.windnsoft.tbus.Fragment.MountainListView;
@@ -210,33 +211,10 @@ public class InfoListActivity extends Activity implements View.OnClickListener {
     }
 
     void loadAd(){
-        Date date = new Date();
-        String imgPath = GetAdFullPath("3.jpg?"+date.getDay());
-        WsLog.e(imgPath);
-        final ImageView adImg = (ImageView)findViewById(R.id.advImg);
-        final Point screenSize = WsUtils.getDeviceScreenSize(InfoListActivity.this);
-        final int imgWidth = screenSize.x;
-
-        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) adImg.getLayoutParams();
-
-        Glide.with(InfoListActivity.this)
-                .asBitmap()
-                .load(imgPath)
-                .into(new CustomTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
-                        final int imgHeight = imgWidth * bitmap.getHeight() / bitmap.getWidth();
-                        params.width = imgWidth;
-                        params.height = imgHeight;
-                        adImg.setLayoutParams(params);
-                        adImg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        adImg.setImageBitmap(bitmap);
-                    }
-
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
-                    }
-                });
+        final AdBannerSliderView adImg = (AdBannerSliderView) findViewById(R.id.advImg);
+        if (adImg != null) {
+            adImg.loadAds(3);
+        }
     }
 
     private void openCallSmsFragment() {

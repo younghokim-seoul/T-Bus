@@ -20,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.windnsoft.tbus.Common.GlobalVars;
+import com.windnsoft.tbus.Fragment.AdBannerSliderView;
 import com.windnsoft.tbus.Fragment.CompanyListView;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
@@ -182,32 +183,9 @@ public class CoListActivity extends Activity implements View.OnClickListener {
     }
 
     void loadAd(){
-        Date date = new Date();
-        String imgPath = GetAdFullPath("2.jpg?"+date.getDay());
-        WsLog.e(imgPath);
-        final ImageView adImg = (ImageView)findViewById(R.id.advImg);
-        final Point screenSize = WsUtils.getDeviceScreenSize(CoListActivity.this);
-        final int imgWidth = screenSize.x;
-
-        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) adImg.getLayoutParams();
-
-        Glide.with(CoListActivity.this)
-                .asBitmap()
-                .load(imgPath)
-                .into(new CustomTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
-                        final int imgHeight = imgWidth * bitmap.getHeight() / bitmap.getWidth();
-                        params.width = imgWidth;
-                        params.height = imgHeight;
-                        adImg.setLayoutParams(params);
-                        adImg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        adImg.setImageBitmap(bitmap);
-                    }
-
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
-                    }
-                });
+        final AdBannerSliderView adImg = (AdBannerSliderView) findViewById(R.id.advImg);
+        if (adImg != null) {
+            adImg.loadAds(2);
+        }
     }
 }
