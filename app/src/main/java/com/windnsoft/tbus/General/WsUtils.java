@@ -253,4 +253,58 @@ public class WsUtils {
         }
         return trimmed;
     }
+
+    private static final java.util.regex.Pattern KR_PHONE_PATTERN = java.util.regex.Pattern.compile(
+        "(?<!\\d)(01[016789][-\\.\\s]?\\d{3,4}[-\\.\\s]?\\d{4}|0(?:2|[3-6][1-5]|70|80|50\\d)[-\\.\\s]?\\d{3,4}[-\\.\\s]?\\d{4}|1[568]\\d{2}[-\\.\\s]?\\d{4})(?!\\d)"
+    );
+
+    public static void setPhoneClickableText(final Context context, android.widget.TextView textView, String rawText) {
+        if (textView == null) return;
+        if (rawText == null || rawText.isEmpty()) {
+            textView.setText("");
+            return;
+        }
+
+        android.text.SpannableString spannable = new android.text.SpannableString(rawText);
+        java.util.regex.Matcher matcher = KR_PHONE_PATTERN.matcher(rawText);
+        boolean hasMatch = false;
+
+        while (matcher.find()) {
+            final String matchedPhone = matcher.group(1);
+            if (matchedPhone == null) continue;
+            final String dialNumber = matchedPhone.replaceAll("[^0-9]", "");
+            if (dialNumber.isEmpty()) continue;
+
+            hasMatch = true;
+            int start = matcher.start(1);
+            int end = matcher.end(1);
+
+            spannable.setSpan(
+                new android.text.style.ClickableSpan() {
+                    @Override
+                    public void onClick(View widget) {
+                        phoneCall(context != null ? context : widget.getContext(), dialNumber);
+                    }
+
+                    @Override
+                    public void updateDrawState(android.text.TextPaint ds) {
+                        super.updateDrawState(ds);
+                        ds.setColor(android.graphics.Color.parseColor("#1976D2"));
+                        ds.setUnderlineText(true);
+                    }
+                },
+                start,
+                end,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+        }
+
+        if (hasMatch) {
+            textView.setText(spannable);
+            textView.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+            textView.setHighlightColor(android.graphics.Color.TRANSPARENT);
+        } else {
+            textView.setText(rawText);
+        }
+    }
 }

@@ -101,7 +101,7 @@ public class NoticeDetailFragment extends DialogFragment implements View.OnClick
 //        view.findViewById(R.id.bvReplySendBtn).setOnClickListener(this);
 //        ((TextView) view.findViewById(R.id.bvTitle)).setText(board.text);
         ((TextView) view.findViewById(R.id.ndTitle)).setText(entity.title);
-        ((TextView) view.findViewById(R.id.ndContent)).setText(entity.contents);
+        WsUtils.setPhoneClickableText(getActivity(), (TextView) view.findViewById(R.id.ndContent), entity.contents);
 
         return view;
     }

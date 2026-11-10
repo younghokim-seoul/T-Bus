@@ -103,7 +103,7 @@ public class BoardDetailFragment extends DialogFragment implements View.OnClickL
         ((TextView) view.findViewById(R.id.bvTitle)).setText(board.text);
         ((TextView) view.findViewById(R.id.bvWriterNameTxt)).setText(entity.userName);
         ((TextView) view.findViewById(R.id.bvWriterDateTxt)).setText(entity.time);
-        ((TextView) view.findViewById(R.id.bvContentsTxt)).setText(entity.contents);
+        WsUtils.setPhoneClickableText(getActivity(), (TextView) view.findViewById(R.id.bvContentsTxt), entity.contents);
 
         ImageView ivWriter = (ImageView) view.findViewById(R.id.bvWriterImg);
         if (entity.userType == UserTypes.Bus) {
@@ -271,7 +271,7 @@ public class BoardDetailFragment extends DialogFragment implements View.OnClickL
         for (final ReplyListItemEntity entity : itemList) {
             View view = inflater.inflate(R.layout.reply_item, null);
             ((TextView) view.findViewById(R.id.reWriterNameTxt)).setText(entity.user_name);
-            ((TextView) view.findViewById(R.id.reBodyTxt)).setText(entity.contents);
+            WsUtils.setPhoneClickableText(getActivity(), (TextView) view.findViewById(R.id.reBodyTxt), entity.contents);
             ((TextView) view.findViewById(R.id.reTimeTxt)).setText(entity.date.toString().substring(0, 16));
 
             //TODO
