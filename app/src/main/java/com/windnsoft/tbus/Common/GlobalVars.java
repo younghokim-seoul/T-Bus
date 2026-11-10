@@ -35,7 +35,9 @@ public class GlobalVars {
     public final static String PathUploadMountain = PathRoot+"/servlet/board/UploadMountain";
 
     public final static String PathNoticeList = PathRoot+"/servlet/notice/getList";
+    public final static String PathAdvList = PathRoot+"/servlet/admin/getAdvList";
     public final static String PathBoardList = PathRoot+"/servlet/board/getList";
+    public final static String PathBoardListPaging = PathRoot+"/servlet/board/getListPaging";
     public final static String PathBusEstimateList = PathRoot+"/servlet/board/getBusEstimateList";
     public final static String PathMountainList = PathRoot+"/servlet/board/getMountainList";
     public final static String PathMountainBookStateChange = PathRoot+"/servlet/board/updateMountainState";
