@@ -47,7 +47,7 @@ import kotlinx.coroutines.delay
 fun TBusAdBannerPager(
     ads: List<AdvEntity>,
     modifier: Modifier = Modifier,
-    autoScrollIntervalMs: Long = 5_000L,
+    autoScrollIntervalMs: Long = 2_000L,
     bannerAspectRatio: Float = 2.1f,
 ) {
     val validAds = remember(ads) {

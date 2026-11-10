@@ -249,7 +249,7 @@ class AdBannerSliderView @JvmOverloads constructor(
     }
 
     companion object {
-        private const val AUTO_SCROLL_INTERVAL_MS = 5_000L
+        private const val AUTO_SCROLL_INTERVAL_MS = 2_000L
         private const val BANNER_ASPECT_RATIO = 2.1f
     }
 }
