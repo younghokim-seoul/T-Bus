@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -288,10 +287,7 @@ private object CompanyMarkerIconHelper {
 class FamousCompanyActivity : ComponentActivity() {
 
     private val edgeToEdgeConfig: EdgeToEdgeConfig
-        get() = when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-            Configuration.UI_MODE_NIGHT_YES -> EdgeToEdgeDefaults.darkTransparent()
-            else -> EdgeToEdgeDefaults.lightTransparent()
-        }
+        get() = EdgeToEdgeDefaults.darkTransparent()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

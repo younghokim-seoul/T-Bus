@@ -3,7 +3,6 @@ package com.windnsoft.tbus
 import android.Manifest
 import android.app.DialogFragment
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -122,10 +121,7 @@ class MainActivity : ComponentActivity() {
     private val boardViewModel: MainBoardViewModel by viewModels()
 
     private val edgeToEdgeConfig: EdgeToEdgeConfig
-        get() = when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-            Configuration.UI_MODE_NIGHT_YES -> EdgeToEdgeDefaults.darkTransparent()
-            else -> EdgeToEdgeDefaults.lightTransparent()
-        }
+        get() = EdgeToEdgeDefaults.darkTransparent()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

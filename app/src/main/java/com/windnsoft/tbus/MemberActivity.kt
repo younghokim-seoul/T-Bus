@@ -1,7 +1,6 @@
 package com.windnsoft.tbus
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.widget.Toast
@@ -100,10 +99,7 @@ import com.windnsoft.tbus.utils.EdgeToEdgeDefaults
 class MemberActivity : ComponentActivity() {
 
     private val edgeToEdgeConfig: EdgeToEdgeConfig
-        get() = when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-            Configuration.UI_MODE_NIGHT_YES -> EdgeToEdgeDefaults.darkTransparent()
-            else -> EdgeToEdgeDefaults.lightTransparent()
-        }
+        get() = EdgeToEdgeDefaults.darkTransparent()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
