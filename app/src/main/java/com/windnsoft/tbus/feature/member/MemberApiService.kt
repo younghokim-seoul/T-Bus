@@ -28,6 +28,13 @@ interface MemberApiService {
     ): ResponseMessageEntity
 
     @FormUrlEncoded
+    @POST(GlobalVars.PathSearchUserListUrl)
+    suspend fun searchUserList(
+        @Field("type") type: Int,
+        @Field("keyword") keyword: String,
+    ): ResponseMessageEntity
+
+    @FormUrlEncoded
     @POST(GlobalVars.PathUserInfoUrl)
     suspend fun getUserInfo(
         @Field("uid") uid: Int,

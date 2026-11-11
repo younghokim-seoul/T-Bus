@@ -6,7 +6,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.filter
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -58,8 +58,14 @@ class MemberViewModel : ViewModel() {
 
     private var detailJob: Job? = null
 
-    private val basePagingFlow: Flow<PagingData<UserEntity>> = _selectedTab
-        .flatMapLatest { tab ->
+    val pagedMembers: Flow<PagingData<UserEntity>> = combine(
+        _selectedTab,
+        _appliedSearchQuery,
+    ) { tab, query ->
+        tab to query.trim()
+    }
+        .distinctUntilChanged()
+        .flatMapLatest { (tab, keyword) ->
             Pager(
                 config = PagingConfig(
                     pageSize = PAGE_LIMIT,
@@ -72,35 +78,13 @@ class MemberViewModel : ViewModel() {
                         apiService = apiService,
                         gson = gson,
                         userType = tab.typeCode,
+                        keyword = keyword,
                         pageSize = PAGE_LIMIT,
                     )
                 },
             ).flow
         }
         .cachedIn(viewModelScope)
-
-    val pagedMembers: Flow<PagingData<UserEntity>> = combine(
-        basePagingFlow,
-        _appliedSearchQuery,
-    ) { pagingData, query ->
-        val trimmedQuery = query.trim()
-        if (trimmedQuery.isEmpty()) {
-            pagingData
-        } else {
-            val normalizedPhoneQuery = trimmedQuery.replace("-", "").replace(" ", "")
-            pagingData.filter { user ->
-                val nameMatch = user.name?.contains(trimmedQuery, ignoreCase = true) == true
-                val companyMatch = user.company_name?.contains(trimmedQuery, ignoreCase = true) == true
-                val telMatch = user.tel
-                    ?.replace("-", "")
-                    ?.replace(" ", "")
-                    ?.let { normalizedTel ->
-                        normalizedPhoneQuery.isNotEmpty() && normalizedTel.contains(normalizedPhoneQuery, ignoreCase = true)
-                    } == true
-                nameMatch || companyMatch || telMatch
-            }
-        }
-    }
 
     fun selectTab(tab: MemberTabType) {
         if (_selectedTab.value != tab) {

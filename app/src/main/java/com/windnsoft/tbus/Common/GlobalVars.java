@@ -22,6 +22,7 @@ public class GlobalVars {
     public final static String PathUserJoinCoUrl = PathRoot+"/servlet/users/joinCo";
     public final static String PathUserInfoUrl = PathRoot+"/servlet/users/getInfo";
     public final static String PathUserListUrl = PathRoot+"/servlet/users/getUserList";
+    public final static String PathSearchUserListUrl = PathRoot+"/servlet/users/searchUserList";
     public final static String PathCoListUrl = PathRoot+"/servlet/users/getCoList";
     public final static String PathGetLatLngListUrl = PathRoot+"/servlet/users/getLatLngList";
     public final static String PathUpdateMemberUrl = PathRoot+"/servlet/users/updateMember";

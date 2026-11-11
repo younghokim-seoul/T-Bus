@@ -147,6 +147,7 @@
   | :--- | :---: | :---: | :--- |
   | `type` | `integer` | Y | 회원 유형 |
   | `keyword` | `string` | Y | 검색어 |
+- **Android 연동**: [`MemberApiService.searchUserList()`](app/src/main/java/com/windnsoft/tbus/feature/member/MemberApiService.kt)
 
 ---
 

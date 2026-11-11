@@ -14,6 +14,7 @@ class MemberPagingSource(
     private val apiService: MemberApiService,
     private val gson: Gson,
     private val userType: Int,
+    private val keyword: String = "",
     private val pageSize: Int = DEFAULT_PAGE_SIZE,
 ) : PagingSource<Int, UserEntity>() {
 
@@ -26,12 +27,22 @@ class MemberPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserEntity> {
         val currentPage = params.key ?: STARTING_PAGE_INDEX
+        val trimmedKeyword = keyword.trim()
+        val isSearchMode = trimmedKeyword.isNotEmpty()
+
         return try {
-            val response = apiService.getUserList(
-                type = userType,
-                page = currentPage,
-                limit = pageSize,
-            )
+            val response = if (isSearchMode) {
+                apiService.searchUserList(
+                    type = userType,
+                    keyword = trimmedKeyword,
+                )
+            } else {
+                apiService.getUserList(
+                    type = userType,
+                    page = currentPage,
+                    limit = pageSize,
+                )
+            }
 
             if (response.code != ResponseCodes.CodeOk) {
                 return LoadResult.Error(
@@ -50,7 +61,7 @@ class MemberPagingSource(
                 gson.fromJson<List<UserEntity>>(reader, listType) ?: emptyList()
             }
 
-            val nextKey = if (users.size < pageSize) {
+            val nextKey = if (isSearchMode || users.size < pageSize) {
                 null
             } else {
                 currentPage + 1
@@ -62,7 +73,7 @@ class MemberPagingSource(
                 nextKey = nextKey,
             )
         } catch (e: Exception) {
-            Timber.e(e, "Failed to load user list for type=$userType, page=$currentPage")
+            Timber.e(e, "Failed to load user list for type=$userType, keyword=$trimmedKeyword, page=$currentPage")
             LoadResult.Error(e)
         }
     }
