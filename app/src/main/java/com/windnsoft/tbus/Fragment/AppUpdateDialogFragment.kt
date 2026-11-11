@@ -215,28 +215,40 @@ class AppUpdateDialogFragment :
                         ?.getOrNull(1)
                         ?.toIntOrNull()
 
-                    if (remoteVersionCode != null) {
-                        Timber.d(
-                            "OneStore version check - local=%d, remote=%d",
-                            BuildConfig.VERSION_CODE,
-                            remoteVersionCode,
-                        )
-                        return remoteVersionCode > BuildConfig.VERSION_CODE
-                    }
-
                     val versionNameRegex = Regex("""\\?"packageVerNm\\?"\s*:\s*\\?"([^"\\]+)\\?"""")
                     val remoteVersionName = versionNameRegex.find(body)
                         ?.groupValues
                         ?.getOrNull(1)
                         ?.trim()
 
-                    if (!remoteVersionName.isNullOrEmpty()) {
-                        Timber.d(
-                            "OneStore versionName check - local=%s, remote=%s",
-                            BuildConfig.VERSION_NAME,
-                            remoteVersionName,
+                    Timber.tag(TAG).i(
+                        "OneStore version check -> local(versionCode=%d, versionName=%s), remote(packageVer=%s, packageVerNm=%s)",
+                        BuildConfig.VERSION_CODE,
+                        BuildConfig.VERSION_NAME,
+                        remoteVersionCode?.toString() ?: "null",
+                        remoteVersionName ?: "null",
+                    )
+
+                    if (remoteVersionCode != null) {
+                        val updateNeeded = remoteVersionCode > BuildConfig.VERSION_CODE
+                        Timber.tag(TAG).i(
+                            "OneStore versionCode compare -> remote(%d) > local(%d) = %b",
+                            remoteVersionCode,
+                            BuildConfig.VERSION_CODE,
+                            updateNeeded,
                         )
-                        return compareVersionNames(remoteVersionName, BuildConfig.VERSION_NAME) > 0
+                        return updateNeeded
+                    }
+
+                    if (!remoteVersionName.isNullOrEmpty()) {
+                        val updateNeeded = compareVersionNames(remoteVersionName, BuildConfig.VERSION_NAME) > 0
+                        Timber.tag(TAG).i(
+                            "OneStore versionName compare -> remote(%s) > local(%s) = %b",
+                            remoteVersionName,
+                            BuildConfig.VERSION_NAME,
+                            updateNeeded,
+                        )
+                        return updateNeeded
                     }
 
                     false
