@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.windnsoft.tbus.Common.GlobalVars;
 import com.windnsoft.tbus.Entities.BoardIDs;
+import com.windnsoft.tbus.Fragment.AdBannerSliderView;
 import com.windnsoft.tbus.General.WsUtils;
 
 public class InfoActivity extends Activity implements View.OnClickListener {
@@ -31,7 +32,7 @@ public class InfoActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.infNewsBtn).setOnClickListener(this);
         findViewById(R.id.infTrafficBtn).setOnClickListener(this);
 
-
+        loadAd();
     }
 
     @Override
@@ -88,6 +89,13 @@ public class InfoActivity extends Activity implements View.OnClickListener {
         intent.putExtra("bid", bid);
         startActivity(intent);
 //        finish();
+    }
+
+    void loadAd(){
+        final AdBannerSliderView adImg = (AdBannerSliderView) findViewById(R.id.advImg);
+        if (adImg != null) {
+            adImg.loadAds(3);
+        }
     }
 
 }

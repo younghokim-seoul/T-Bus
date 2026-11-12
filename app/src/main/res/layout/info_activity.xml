@@ -63,11 +63,12 @@
             android:orientation="vertical"
             >
 
-            <ImageView
-                android:id="@+id/imageView"
+            <com.windnsoft.tbus.Fragment.AdBannerSliderView
+                android:id="@+id/advImg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/Black"
+                android:visibility="gone"
                 />
 
 

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.windnsoft.tbus.Common.GlobalVars;
+import com.windnsoft.tbus.Fragment.AdBannerSliderView;
 import com.windnsoft.tbus.General.WsUtils;
 
 public class CoActivity extends Activity implements View.OnClickListener {
@@ -31,6 +32,7 @@ public class CoActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.coShipBtn).setOnClickListener(this);
         findViewById(R.id.coEtcBtn).setOnClickListener(this);
 
+        loadAd();
     }
 
     @Override
@@ -89,6 +91,13 @@ public class CoActivity extends Activity implements View.OnClickListener {
         Intent intent = new Intent(CoActivity.this, CoListActivity.class);
         intent.putExtra("sector", sector);
         startActivity(intent);
+    }
+
+    void loadAd(){
+        final AdBannerSliderView adImg = (AdBannerSliderView) findViewById(R.id.advImg);
+        if (adImg != null) {
+            adImg.loadAds(2);
+        }
     }
 
 }
