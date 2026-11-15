@@ -118,6 +118,7 @@ class MainBoardViewModel : ViewModel() {
         advJob = viewModelScope.launch {
             try {
                 val response = apiService.getAdvList(bid = bid)
+                Timber.d("getAdvList(bid=%d) response: code=%d, msg=%s", bid, response.code, response.msg)
                 if (response.code == ResponseCodes.CodeOk && !response.msg.isNullOrBlank()) {
                     val listType = object : TypeToken<List<AdvEntity>>() {}.type
                     val reader = JsonReader(StringReader(response.msg)).apply {
