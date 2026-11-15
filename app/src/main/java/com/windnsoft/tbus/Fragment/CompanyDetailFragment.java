@@ -3,6 +3,7 @@ package com.windnsoft.tbus.Fragment;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -66,7 +67,7 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        if (!args.isEmpty()) {
+        if (args != null && !args.isEmpty()) {
 //            this.bid = args.getInt("bid");
 //            board = BoardIDs.BoardMap.get(bid);
         }
@@ -131,22 +132,31 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
         view.findViewById(R.id.bvBackBtn).setOnClickListener(this);
         view.findViewById(R.id.cdCallBtn).setOnClickListener(this);
 
+        if (entity == null) {
+            dismissAllowingStateLoss();
+            return view;
+        }
+
         ((TextView) view.findViewById(R.id.bvTitle)).setText(entity.company_name);
         ((TextView) view.findViewById(R.id.bvWriterNameTxt)).setText(entity.company_name);
         ((TextView) view.findViewById(R.id.bvWriterDateTxt)).setText(entity.time);
 
+        String locale = entity.locale != null ? entity.locale.trim() : "";
+        String addr = entity.addr != null ? entity.addr.trim() : "";
+        String fullAddr = (locale + " " + addr).trim();
+
         ((TextView) view.findViewById(R.id.cvProductTxt)).setText(entity.product);
-        ((TextView) view.findViewById(R.id.cvAddrTxt)).setText(entity.locale+" "+entity.addr);
+        ((TextView) view.findViewById(R.id.cvAddrTxt)).setText(fullAddr);
         ((EditText) view.findViewById(R.id.cvManagerNameTxt)).setText(entity.manager_name);
         ((EditText) view.findViewById(R.id.cvManagerTelTxt)).setText(entity.manager_tel);
         ((EditText) view.findViewById(R.id.cvContactTxt)).setText(entity.contact);
         ((EditText) view.findViewById(R.id.cvUsageTxt)).setText(entity.usage);
         ((EditText) view.findViewById(R.id.cvMenuTxt)).setText(entity.menu);
-        ((EditText) view.findViewById(R.id.cvCapacityTxt)).setText("" + entity.capacity);
+        ((EditText) view.findViewById(R.id.cvCapacityTxt)).setText(entity.capacity != null ? String.valueOf(entity.capacity) : "");
         ((EditText) view.findViewById(R.id.cvTimeTxt)).setText(entity.time);
         ((EditText) view.findViewById(R.id.cvClosedTxt)).setText(entity.closed);
         ((EditText) view.findViewById(R.id.cvParkingTxt)).setText(entity.parking);
-        ((EditText) view.findViewById(R.id.cvBookingTxt)).setText(entity.booking ? "가능" : "불가능");
+        ((EditText) view.findViewById(R.id.cvBookingTxt)).setText(Boolean.TRUE.equals(entity.booking) ? "가능" : "불가능");
         ((EditText) view.findViewById(R.id.cvDetailTxt)).setText(entity.detail);
         ImageView ivWriter = (ImageView) view.findViewById(R.id.bvWriterImg);
         if (entity.profile != null && !entity.profile.isEmpty()) {
@@ -207,9 +217,13 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        Fragment fragment = getFragmentManager().findFragmentById(R.id.cvMapView);
-        if(fragment != null)
-            getFragmentManager().beginTransaction().remove(fragment).commit();
+        FragmentManager fm = getFragmentManager();
+        if (fm != null) {
+            Fragment fragment = fm.findFragmentById(R.id.cvMapView);
+            if (fragment != null) {
+                fm.beginTransaction().remove(fragment).commitAllowingStateLoss();
+            }
+        }
         if (onDismissListener != null)
             onDismissListener.onDismiss(dialog);
 

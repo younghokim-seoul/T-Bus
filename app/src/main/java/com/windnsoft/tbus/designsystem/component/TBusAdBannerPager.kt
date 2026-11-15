@@ -2,6 +2,7 @@ package com.windnsoft.tbus.designsystem.component
 
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -49,6 +50,7 @@ fun TBusAdBannerPager(
     modifier: Modifier = Modifier,
     autoScrollIntervalMs: Long = 2_000L,
     bannerAspectRatio: Float = 2.1f,
+    onAdClick: (AdvEntity) -> Unit = {},
 ) {
     val validAds = remember(ads) {
         ads.filter { !it.photo.isNullOrBlank() }
@@ -71,7 +73,10 @@ fun TBusAdBannerPager(
                 .background(Color.Black),
             contentAlignment = Alignment.Center,
         ) {
-            AdBannerImage(imageUrl = singleUrl)
+            AdBannerImage(
+                imageUrl = singleUrl,
+                onClick = { onAdClick(validAds[0]) },
+            )
         }
         return
     }
@@ -157,15 +162,29 @@ fun TBusAdBannerPager(
         val imageUrl = remember(item.photo) {
             GlobalVars.GetAdFullPath(item.photo)
         }
-        AdBannerImage(imageUrl = imageUrl)
+        AdBannerImage(
+            imageUrl = imageUrl,
+            onClick = { onAdClick(item) },
+        )
     }
 }
 
 @Composable
-private fun AdBannerImage(imageUrl: String) {
+private fun AdBannerImage(
+    imageUrl: String,
+    onClick: (() -> Unit)? = null,
+) {
     GlideImage(
         imageModel = { imageUrl },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                },
+            ),
         requestOptions = {
             RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)

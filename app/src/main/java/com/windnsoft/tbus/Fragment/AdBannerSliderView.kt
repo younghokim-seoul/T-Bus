@@ -1,6 +1,8 @@
 package com.windnsoft.tbus.Fragment
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
@@ -45,10 +47,11 @@ class AdBannerSliderView @JvmOverloads constructor(
     private val recyclerView: RecyclerView
     private val layoutManager: LinearLayoutManager
     private val snapHelper: PagerSnapHelper
-    private val adapter = BannerAdapter()
+    private val adapter = BannerAdapter { ad -> handleAdClick(ad) }
     private val mainHandler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var loadJob: Job? = null
+    private var detailJob: Job? = null
     private val gson = GsonBuilder().setLenient().create()
 
     private var realCount: Int = 0
@@ -216,7 +219,28 @@ class AdBannerSliderView @JvmOverloads constructor(
         super.onDetachedFromWindow()
     }
 
-    private class BannerAdapter : RecyclerView.Adapter<BannerAdapter.BannerViewHolder>() {
+    private fun handleAdClick(ad: AdvEntity) {
+        if (detailJob?.isActive == true) return
+        val activity = findActivity(context) ?: return
+        detailJob = CompanyDetailLauncher.openByUid(
+            activity = activity,
+            scope = scope,
+            uid = ad.uid,
+        )
+    }
+
+    private fun findActivity(context: Context): Activity? {
+        var current: Context? = context
+        while (current is ContextWrapper) {
+            if (current is Activity) return current
+            current = current.baseContext
+        }
+        return current as? Activity
+    }
+
+    private class BannerAdapter(
+        private val onItemClick: (AdvEntity) -> Unit,
+    ) : RecyclerView.Adapter<BannerAdapter.BannerViewHolder>() {
         private var items: List<AdvEntity> = emptyList()
 
         fun submitList(newItems: List<AdvEntity>) {
@@ -242,6 +266,9 @@ class AdBannerSliderView @JvmOverloads constructor(
                 .load(url)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(holder.imageView)
+            holder.imageView.setOnClickListener {
+                onItemClick(item)
+            }
         }
 
         override fun getItemCount(): Int = items.size

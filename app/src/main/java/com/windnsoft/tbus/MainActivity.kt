@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -94,6 +95,7 @@ import com.windnsoft.tbus.Fragment.BoardDetailFragment
 import com.windnsoft.tbus.Fragment.BoardWriteFragment
 import com.windnsoft.tbus.Fragment.BusEstimateDetailFragment
 import com.windnsoft.tbus.Fragment.BusEstimateWriteFragment
+import com.windnsoft.tbus.Fragment.CompanyDetailLauncher
 import com.windnsoft.tbus.Fragment.NoticeDetailFragment
 import com.windnsoft.tbus.Fragment.PrivacyPolicyFragment
 import com.windnsoft.tbus.Fragment.ProfileEditDialogFragment
@@ -111,6 +113,7 @@ import com.windnsoft.tbus.feature.board.MainBoardTab
 import com.windnsoft.tbus.feature.board.MainBoardViewModel
 import com.windnsoft.tbus.utils.EdgeToEdgeConfig
 import com.windnsoft.tbus.utils.EdgeToEdgeDefaults
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -119,6 +122,7 @@ import java.util.ArrayList
 class MainActivity : ComponentActivity() {
 
     private val boardViewModel: MainBoardViewModel by viewModels()
+    private var adDetailJob: Job? = null
 
     private val edgeToEdgeConfig: EdgeToEdgeConfig
         get() = EdgeToEdgeDefaults.darkTransparent()
@@ -165,6 +169,15 @@ class MainActivity : ComponentActivity() {
                     },
                     onEstimateItemClick = { estimate ->
                         openEstimateItemView(BoardIDs.Estimate, estimate)
+                    },
+                    onAdClick = { ad ->
+                        if (adDetailJob?.isActive != true) {
+                            adDetailJob = CompanyDetailLauncher.openByUid(
+                                activity = this@MainActivity,
+                                scope = lifecycleScope,
+                                uid = ad.uid,
+                            )
+                        }
                     },
                     onFamousCompanyClick = {
                         startActivity(Intent(this@MainActivity, FamousCompanyActivity::class.java))
@@ -409,6 +422,7 @@ private fun MainBoardScreen(
     onNoticeClick: (NoticeEntity) -> Unit,
     onBoardItemClick: (BoardItemEntity) -> Unit,
     onEstimateItemClick: (BusEstimateEntity) -> Unit,
+    onAdClick: (AdvEntity) -> Unit,
     onFamousCompanyClick: () -> Unit,
     onQrClick: () -> Unit,
     onInviteClick: () -> Unit,
@@ -587,7 +601,10 @@ private fun MainBoardScreen(
 
             // 2. 상단 광고 배너 (advImg, bid = 1 소식) - 견적 탭 외 표시
             if (selectedTab != MainBoardTab.Estimate) {
-                TBusAdBannerPager(ads = adItems)
+                TBusAdBannerPager(
+                    ads = adItems,
+                    onAdClick = onAdClick,
+                )
             }
 
             // 3. 5개 게시판 탭 바 (38dp)
