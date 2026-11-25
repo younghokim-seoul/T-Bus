@@ -120,6 +120,7 @@ import com.windnsoft.tbus.designsystem.component.TBusText
 import com.windnsoft.tbus.designsystem.component.TBusTextVariant
 import com.windnsoft.tbus.designsystem.component.TBusTopAppBar
 import com.windnsoft.tbus.designsystem.theme.TBusTheme
+import com.windnsoft.tbus.feature.address.AddressSearchHelper
 import com.windnsoft.tbus.feature.member.MemberApiService
 import com.windnsoft.tbus.feature.member.MemberPhotoViewerActivity
 import com.windnsoft.tbus.utils.EdgeToEdgeConfig
@@ -695,10 +696,10 @@ private fun FamousCompanyBottomCard(
         detail?.product?.takeIf { it.isNotBlank() },
         detail?.menu?.takeIf { it.isNotBlank() && it != detail.product },
     ).joinToString(" · ")
-    val fullAddress = listOfNotNull(
-        detail?.locale?.takeIf { it.isNotBlank() },
-        detail?.addr?.takeIf { it.isNotBlank() } ?: marker.addr?.takeIf { it.isNotBlank() },
-    ).joinToString(" ").trim()
+    val fullAddress = AddressSearchHelper.formatCompanyFullAddress(
+        detail?.locale,
+        detail?.addr?.takeIf { it.isNotBlank() } ?: marker.addr,
+    )
     val operatingInfo = listOfNotNull(
         detail?.time?.takeIf { it.isNotBlank() }?.let { "영업: $it" },
         detail?.parking?.takeIf { it.isNotBlank() }?.let { "주차: $it" },
@@ -994,10 +995,10 @@ private fun FamousCompanyDetailDialog(
             emptyList()
         }
     }
-    val fullAddress = listOfNotNull(
-        company.locale?.takeIf { it.isNotBlank() },
-        company.addr?.takeIf { it.isNotBlank() },
-    ).joinToString(" ").trim()
+    val fullAddress = AddressSearchHelper.formatCompanyFullAddress(
+        company.locale,
+        company.addr,
+    )
     val phoneToCall = company.contact?.takeIf { it.isNotBlank() }
         ?: company.manager_tel?.takeIf { it.isNotBlank() }
         ?: company.tel?.takeIf { it.isNotBlank() }

@@ -32,6 +32,7 @@ import com.windnsoft.tbus.General.DialogDismissListener;
 import com.windnsoft.tbus.General.WsLog;
 import com.windnsoft.tbus.General.WsUtils;
 import com.windnsoft.tbus.R;
+import com.windnsoft.tbus.feature.address.AddressSearchHelper;
 
 import java.util.List;
 
@@ -86,14 +87,8 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
         try {
             String fullAddress = "";
             if (entity != null) {
-                if (entity.locale != null && !entity.locale.trim().isEmpty()) {
-                    fullAddress += entity.locale.trim() + " ";
-                }
-                if (entity.addr != null && !entity.addr.trim().isEmpty()) {
-                    fullAddress += entity.addr.trim();
-                }
+                fullAddress = AddressSearchHelper.formatCompanyFullAddress(entity.locale, entity.addr);
             }
-            fullAddress = fullAddress.trim();
 
             WsLog.e(fullAddress);
             Geocoder geocoder = new Geocoder(getActivity());
@@ -141,9 +136,7 @@ public class CompanyDetailFragment extends DialogFragment implements View.OnClic
         ((TextView) view.findViewById(R.id.bvWriterNameTxt)).setText(entity.company_name);
         ((TextView) view.findViewById(R.id.bvWriterDateTxt)).setText(entity.time);
 
-        String locale = entity.locale != null ? entity.locale.trim() : "";
-        String addr = entity.addr != null ? entity.addr.trim() : "";
-        String fullAddr = (locale + " " + addr).trim();
+        String fullAddr = AddressSearchHelper.formatCompanyFullAddress(entity.locale, entity.addr);
 
         ((TextView) view.findViewById(R.id.cvProductTxt)).setText(entity.product);
         ((TextView) view.findViewById(R.id.cvAddrTxt)).setText(fullAddr);
