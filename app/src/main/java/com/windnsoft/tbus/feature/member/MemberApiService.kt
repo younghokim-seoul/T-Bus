@@ -46,6 +46,12 @@ interface MemberApiService {
         @Field("user_json") userJson: String,
     ): ResponseMessageEntity
 
+    @FormUrlEncoded
+    @POST(GlobalVars.PathUpdateLatLngUrl)
+    suspend fun updateLatLng(
+        @Field("user_json") userJson: String,
+    ): ResponseMessageEntity
+
     @Multipart
     @POST(GlobalVars.PathUpdateProfilePictureUrl)
     suspend fun updateProfilePicture(

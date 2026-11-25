@@ -12,6 +12,7 @@ if (localPropertiesFile.exists()) {
     }
 }
 def googleMapsApiKey = localProperties.getProperty('GOOGLE_MAPS_API_KEY', 'AIzaSyC5yGx_orS8xcunWkezkVD-nmxcysIl0WI')
+def kakaoRestApiKey = localProperties.getProperty('KAKAO_REST_API_KEY', '')
 
 android {
     namespace 'com.windnsoft.tbus'
@@ -24,6 +25,7 @@ android {
         versionCode 17
         versionName '1.17'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "KAKAO_REST_API_KEY", "\"${kakaoRestApiKey}\""
     }
 
     signingConfigs {
