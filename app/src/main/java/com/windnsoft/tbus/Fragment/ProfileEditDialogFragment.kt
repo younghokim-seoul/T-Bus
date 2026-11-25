@@ -63,6 +63,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -115,8 +117,15 @@ import com.windnsoft.tbus.designsystem.component.TBusTextButton
 import com.windnsoft.tbus.designsystem.component.TBusTextField
 import com.windnsoft.tbus.designsystem.component.TBusTextVariant
 import com.windnsoft.tbus.designsystem.theme.TBusTheme
+import com.windnsoft.tbus.feature.address.AddressSearchHelper
+import com.windnsoft.tbus.feature.address.DaumPostcodePopupDialog
+import com.windnsoft.tbus.feature.address.MappedTBusAddress
+import com.windnsoft.tbus.feature.address.ResolvedLatLng
 import com.windnsoft.tbus.feature.member.MemberApiService
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -183,12 +192,17 @@ class ProfileEditDialogFragment :
                             dialog?.setCanceledOnTouchOutside(!uploading)
                         },
                         onCancel = { dismiss() },
-                        onConfirm = { updatedUser ->
+                        onConfirm = { updatedUser, latLngSyncFailed ->
                             SharedPreferencesCache.setCurrentUser(updatedUser)
+                            val toastMessage = if (latLngSyncFailed) {
+                                "프로필은 수정되었으나 지도 위치 반영에 실패했습니다. 잠시 후 다시 저장해주세요."
+                            } else {
+                                "프로필이 수정되었습니다."
+                            }
                             Toast.makeText(
                                 activity,
-                                "프로필이 수정되었습니다.",
-                                Toast.LENGTH_SHORT,
+                                toastMessage,
+                                if (latLngSyncFailed) Toast.LENGTH_LONG else Toast.LENGTH_SHORT,
                             ).show()
                             dismiss()
                         },
@@ -334,7 +348,7 @@ private fun ProfileEditDialogContent(
     onRequestPickBusinessCardPhoto: () -> Unit,
     onUploadingStateChanged: (Boolean) -> Unit,
     onCancel: () -> Unit,
-    onConfirm: (UserEntity) -> Unit,
+    onConfirm: (UserEntity, Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -344,19 +358,15 @@ private fun ProfileEditDialogContent(
     val sectorOptions = remember(context) {
         context.resources.getStringArray(R.array.sector).toList()
     }
-    val locale1Options = remember(context) {
-        context.resources.getStringArray(R.array.locale).toList()
-    }
 
     var isUploading by remember { mutableStateOf(false) }
     var serverUserSnapshot by remember { mutableStateOf<UserEntity?>(null) }
     var uploadedLocalProfilePath by remember { mutableStateOf<String?>(null) }
     val uploadedLocalCardPaths = remember { mutableStateListOf<String>() }
 
-    // 업종 / 지역 선택 팝업 표시 상태
+    // 업종 선택 및 다음 주소 검색 팝업 표시 상태
     var showSectorPopup by remember { mutableStateOf(false) }
-    var showLocale1Popup by remember { mutableStateOf(false) }
-    var showLocale2Popup by remember { mutableStateOf(false) }
+    var showPostcodePopup by remember { mutableStateOf(false) }
 
     // 공통 및 버스회원(type=2) 상태
     var tel by remember {
@@ -379,17 +389,6 @@ private fun ProfileEditDialogContent(
     var carNumber by remember { mutableStateOf(cachedUser.car_number.orEmpty()) }
 
     // 업소회원(type=3) 상태
-    val initialLocaleParts = remember {
-        cachedUser.locale.orEmpty().trim().split(Regex("\\s+")).filter { it.isNotBlank() }
-    }
-    val initialLocale1 = initialLocaleParts.getOrNull(0)
-        ?.takeIf { it in locale1Options }
-        ?: locale1Options.firstOrNull().orEmpty()
-    val initialLocale2Options = getSubLocaleOptions(context, locale1Options, initialLocale1)
-    val initialLocale2 = initialLocaleParts.getOrNull(1)
-        ?.takeIf { it in initialLocale2Options }
-        ?: initialLocale2Options.firstOrNull().orEmpty()
-
     var product by remember { mutableStateOf(cachedUser.product.orEmpty()) }
     var sectors by remember {
         mutableStateOf(
@@ -397,11 +396,13 @@ private fun ProfileEditDialogContent(
                 ?: sectorOptions.firstOrNull().orEmpty(),
         )
     }
-    var locale1 by remember { mutableStateOf(initialLocale1) }
-    var locale2 by remember { mutableStateOf(initialLocale2) }
-    val locale2Options = remember(context, locale1Options, locale1) {
-        getSubLocaleOptions(context, locale1Options, locale1)
-    }
+    var existingLocale by remember { mutableStateOf(cachedUser.locale.orEmpty()) }
+    var existingAddr by remember { mutableStateOf(cachedUser.addr.orEmpty()) }
+    var selectedMappedAddress by remember { mutableStateOf<MappedTBusAddress?>(null) }
+    var detailAddress by remember { mutableStateOf("") }
+    var preResolvedLatLng by remember { mutableStateOf<ResolvedLatLng?>(null) }
+    var coordLookupDeferred by remember { mutableStateOf<Deferred<ResolvedLatLng?>?>(null) }
+    val detailAddrFocusRequester = remember { FocusRequester() }
     var managerName by remember {
         mutableStateOf(
             cachedUser.manager_name?.takeIf { it.isNotBlank() }
@@ -524,13 +525,10 @@ private fun ProfileEditDialogContent(
                         sectors = remoteUser.sectors
                     }
                     if (!remoteUser.locale.isNullOrBlank()) {
-                        val parts = remoteUser.locale.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
-                        val parsedL1 = parts.getOrNull(0)?.takeIf { it in locale1Options } ?: locale1
-                        val subOptions = getSubLocaleOptions(context, locale1Options, parsedL1)
-                        val parsedL2 = parts.getOrNull(1)?.takeIf { it in subOptions }
-                            ?: subOptions.firstOrNull().orEmpty()
-                        locale1 = parsedL1
-                        locale2 = parsedL2
+                        existingLocale = remoteUser.locale
+                    }
+                    if (!remoteUser.addr.isNullOrBlank()) {
+                        existingAddr = remoteUser.addr
                     }
                     if (managerName.isBlank()) {
                         managerName = remoteUser.manager_name?.takeIf { it.isNotBlank() }
@@ -735,13 +733,18 @@ private fun ProfileEditDialogContent(
                                     onClick = { showSectorPopup = true },
                                 )
 
-                                LabeledRegionSelectorFields(
-                                    title = "지역",
-                                    locale1Text = locale1.ifBlank { "시/도 선택" },
-                                    locale2Text = locale2.ifBlank { "구/군 선택" },
+                                val displayedBaseAddr = selectedMappedAddress?.displayBaseAddress
+                                    ?: AddressSearchHelper.formatCompanyFullAddress(existingLocale, existingAddr)
+
+                                LabeledCompanyAddressFields(
+                                    title = "주소",
+                                    baseAddressText = displayedBaseAddr,
+                                    detailAddress = detailAddress,
+                                    isNewAddressSelected = selectedMappedAddress != null,
                                     enabled = !isUploading,
-                                    onClickLocale1 = { showLocale1Popup = true },
-                                    onClickLocale2 = { showLocale2Popup = true },
+                                    detailFocusRequester = detailAddrFocusRequester,
+                                    onClickSearch = { showPostcodePopup = true },
+                                    onDetailAddressChange = { detailAddress = it },
                                 )
 
                                 LabeledProfileTextField(
@@ -1032,6 +1035,19 @@ private fun ProfileEditDialogContent(
                             ).show()
                             return@TBusButton
                         }
+                        if (userType == UserTypes.Co) {
+                            val hasAddress = selectedMappedAddress != null ||
+                                AddressSearchHelper.formatCompanyFullAddress(existingLocale, existingAddr).isNotBlank()
+                            if (!hasAddress) {
+                                Toast.makeText(
+                                    context,
+                                    "주소를 검색해주세요.",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                                showPostcodePopup = true
+                                return@TBusButton
+                            }
+                        }
                         if (userType != UserTypes.Bus &&
                             userType != UserTypes.Co &&
                             normalUserName.trim().isEmpty()
@@ -1043,6 +1059,11 @@ private fun ProfileEditDialogContent(
                             ).show()
                             return@TBusButton
                         }
+
+                        val pickedAddrSnapshot = selectedMappedAddress
+                        val detailAddrSnapshot = detailAddress.trim()
+                        val preResolvedSnapshot = preResolvedLatLng
+                        val pendingCoordJob = coordLookupDeferred
 
                         isUploading = true
                         onUploadingStateChanged(true)
@@ -1082,9 +1103,13 @@ private fun ProfileEditDialogContent(
                                             memberToUpdate.company_name = companyName.trim()
                                             memberToUpdate.product = product.trim()
                                             memberToUpdate.sectors = sectors.trim()
-                                            memberToUpdate.locale = listOf(locale1.trim(), locale2.trim())
-                                                .filter { it.isNotEmpty() }
-                                                .joinToString(" ")
+                                            if (pickedAddrSnapshot != null) {
+                                                memberToUpdate.locale = pickedAddrSnapshot.locale
+                                                memberToUpdate.addr = pickedAddrSnapshot.buildFinalAddr(detailAddrSnapshot)
+                                            } else {
+                                                memberToUpdate.locale = existingLocale.trim()
+                                                memberToUpdate.addr = existingAddr.trim()
+                                            }
                                             memberToUpdate.manager_name = managerName.trim()
                                             memberToUpdate.name = managerName.trim().ifEmpty {
                                                 baseUser.name.orEmpty()
@@ -1116,6 +1141,45 @@ private fun ProfileEditDialogContent(
                                     )
                                     if (updateRes.code != ResponseCodes.CodeOk) {
                                         throw IllegalStateException("updateMember failed: code=${updateRes.code}, msg=${updateRes.msg}")
+                                    }
+
+                                    // 1-2. 업소 회원인 경우 위도·경도 지도 마커 연동 (/servlet/users/updateLatLng)
+                                    var latLngSyncFailed = false
+                                    if (userType == UserTypes.Co) {
+                                        val fullAddr = AddressSearchHelper.formatCompanyFullAddress(
+                                            memberToUpdate.locale,
+                                            memberToUpdate.addr,
+                                        )
+                                        val coords = if (pickedAddrSnapshot != null) {
+                                            preResolvedSnapshot
+                                                ?: runCatching { pendingCoordJob?.await() }.getOrNull()
+                                                ?: AddressSearchHelper.resolveCoordinates(
+                                                    context = context,
+                                                    primaryAddress = pickedAddrSnapshot.geocodePrimaryQuery,
+                                                    fallbackAddress = pickedAddrSnapshot.geocodeFallbackQuery,
+                                                )
+                                        } else {
+                                            AddressSearchHelper.resolveCoordinates(
+                                                context = context,
+                                                primaryAddress = fullAddr,
+                                                fallbackAddress = memberToUpdate.addr.orEmpty(),
+                                            )
+                                        }
+
+                                        if (coords != null) {
+                                            val synced = AddressSearchHelper.updateCompanyLatLngWithRetry(
+                                                uid = cachedUser.id,
+                                                companyName = memberToUpdate.company_name.orEmpty(),
+                                                lat = coords.lat,
+                                                lng = coords.lng,
+                                                fullAddress = fullAddr,
+                                            )
+                                            if (!synced && pickedAddrSnapshot != null) {
+                                                latLngSyncFailed = true
+                                            }
+                                        } else if (pickedAddrSnapshot != null) {
+                                            latLngSyncFailed = true
+                                        }
                                     }
 
                                     // 2. 버스 회원 또는 업소 회원인 경우 프로필 사진 및 추가 사진 변경사항 반영
@@ -1199,7 +1263,7 @@ private fun ProfileEditDialogContent(
                                         null
                                     } ?: memberToUpdate
 
-                                    finalUser.apply {
+                                    val resolvedUser = finalUser.apply {
                                         if (userType == UserTypes.Bus || userType == UserTypes.Co) {
                                             val resolvedPhotos = this.photoList?.takeIf { it.isNotEmpty() }
                                                 ?: parsePhotoJsonList(this.photo)
@@ -1210,14 +1274,15 @@ private fun ProfileEditDialogContent(
                                             this.name = normalUserName.trim()
                                         }
                                     }
+                                    resolvedUser to latLngSyncFailed
                                 }
                             }
 
                             isUploading = false
                             onUploadingStateChanged(false)
 
-                            result.onSuccess { updatedUser ->
-                                onConfirm(updatedUser)
+                            result.onSuccess { (updatedUser, latLngSyncFailed) ->
+                                onConfirm(updatedUser, latLngSyncFailed)
                             }.onFailure { error ->
                                 Timber.e(error, "Profile update failed")
                                 Toast.makeText(
@@ -1250,33 +1315,30 @@ private fun ProfileEditDialogContent(
         )
     }
 
-    if (showLocale1Popup) {
-        ProfileSelectionPopupDialog(
-            title = "지역(시/도) 선택",
-            options = locale1Options,
-            selectedOption = locale1,
-            onSelect = { selected ->
-                locale1 = selected
-                val newSubOptions = getSubLocaleOptions(context, locale1Options, selected)
-                if (locale2 !in newSubOptions) {
-                    locale2 = newSubOptions.firstOrNull().orEmpty()
+    if (showPostcodePopup) {
+        DaumPostcodePopupDialog(
+            onAddressSelected = { data ->
+                val mapped = AddressSearchHelper.mapToTBusAddress(context, data)
+                selectedMappedAddress = mapped
+                detailAddress = ""
+                preResolvedLatLng = null
+                coordLookupDeferred?.cancel()
+                coordLookupDeferred = coroutineScope.async {
+                    AddressSearchHelper.resolveCoordinates(
+                        context = context,
+                        primaryAddress = mapped.geocodePrimaryQuery,
+                        fallbackAddress = mapped.geocodeFallbackQuery,
+                    ).also { resolved ->
+                        preResolvedLatLng = resolved
+                    }
                 }
-                showLocale1Popup = false
+                showPostcodePopup = false
+                coroutineScope.launch {
+                    delay(120L)
+                    runCatching { detailAddrFocusRequester.requestFocus() }
+                }
             },
-            onDismiss = { showLocale1Popup = false },
-        )
-    }
-
-    if (showLocale2Popup) {
-        ProfileSelectionPopupDialog(
-            title = "상세 지역(구/군) 선택",
-            options = locale2Options,
-            selectedOption = locale2,
-            onSelect = { selected ->
-                locale2 = selected
-                showLocale2Popup = false
-            },
-            onDismiss = { showLocale2Popup = false },
+            onDismiss = { showPostcodePopup = false },
         )
     }
 
@@ -1394,14 +1456,17 @@ private fun LabeledProfileSelectorField(
 }
 
 @Composable
-private fun LabeledRegionSelectorFields(
+private fun LabeledCompanyAddressFields(
     title: String,
-    locale1Text: String,
-    locale2Text: String,
+    baseAddressText: String,
+    detailAddress: String,
+    isNewAddressSelected: Boolean,
     enabled: Boolean = true,
-    onClickLocale1: () -> Unit,
-    onClickLocale2: () -> Unit,
+    detailFocusRequester: FocusRequester,
+    onClickSearch: () -> Unit,
+    onDetailAddressChange: (String) -> Unit,
 ) {
+    val boxShape = RoundedCornerShape(12.dp)
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -1418,22 +1483,63 @@ private fun LabeledRegionSelectorFields(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(TBusTheme.spacing.sm),
         ) {
-            ProfileSelectorBox(
-                text = locale1Text,
-                enabled = enabled,
-                onClick = onClickLocale1,
-                modifier = Modifier.weight(1f),
-            )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 52.dp)
+                    .clip(boxShape)
+                    .background(TBusTheme.colors.surface)
+                    .border(
+                        width = 1.dp,
+                        color = TBusTheme.colors.line,
+                        shape = boxShape,
+                    )
+                    .clickable(enabled = enabled, onClick = onClickSearch)
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                TBusText(
+                    text = baseAddressText.ifBlank { "주소를 검색해주세요" },
+                    variant = TBusTextVariant.Body,
+                    color = if (baseAddressText.isBlank() || !enabled) {
+                        TBusTheme.colors.contentMuted
+                    } else {
+                        TBusTheme.colors.content
+                    },
+                    style = TBusTheme.typography.body.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                )
+            }
 
-            ProfileSelectorBox(
-                text = locale2Text,
+            TBusButton(
+                text = "주소 검색",
+                onClick = onClickSearch,
                 enabled = enabled,
-                onClick = onClickLocale2,
-                modifier = Modifier.weight(1f),
+                variant = TBusButtonVariant.Secondary,
+                modifier = Modifier.heightIn(min = 52.dp),
             )
         }
+
+        TBusTextField(
+            value = detailAddress,
+            onValueChange = onDetailAddressChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(detailFocusRequester),
+            enabled = enabled && isNewAddressSelected,
+            placeholder = if (isNewAddressSelected) {
+                "상세 주소를 입력하세요 (층, 호수 등 선택)"
+            } else {
+                "주소 검색 시 상세 주소를 입력할 수 있습니다"
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        )
     }
 }
 
@@ -1634,33 +1740,6 @@ private fun ProfileSelectionPopupDialog(
             }
         }
     }
-}
-
-private fun getSubLocaleOptions(
-    context: Context,
-    locale1Options: List<String>,
-    selectedLocale1: String,
-): List<String> {
-    val arrayResId = when (locale1Options.indexOf(selectedLocale1)) {
-        0 -> R.array.localeSeoul
-        1 -> R.array.localeBusan
-        2 -> R.array.localeDaegu
-        3 -> R.array.localeIncheon
-        4 -> R.array.localeGwangju
-        5 -> R.array.localeDaejeon
-        6 -> R.array.localeUlsan
-        7 -> R.array.localeGyeonggi
-        8 -> R.array.localeGangwon
-        9 -> R.array.localeChungcheongbuk
-        10 -> R.array.localeChungcheongnam
-        11 -> R.array.localeJeollabuk
-        12 -> R.array.localeJeollanam
-        13 -> R.array.localeGyeongsangbuk
-        14 -> R.array.localeGyeongsangnam
-        15 -> R.array.localeJeju
-        else -> R.array.localeSeoul
-    }
-    return context.resources.getStringArray(arrayResId).filter { !it.contains("전체") }
 }
 
 @Composable
